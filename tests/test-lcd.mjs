@@ -314,3 +314,21 @@ x.fm1_key(14,0);level(.25);assert.equal(pixel(50,84),initialStep,'segurar trocou
 turn(2,1);const draftReady=box(219,18);turn(3,1);assert.notDeepEqual(box(219,18),draftReady,'prévia não entrou');
 turn(4,1);assert.notDeepEqual(box(219,18),draftReady,'rascunho ficou ativo depois de aplicar');
 console.log('Calibração, edição de passo segurado, geração, prévia e aplicação no painel passaram.');
+
+boot();level(1.8);
+tap(10);
+assert(level(.35)<.0001,'ARP acionou uma camada');
+shortEdit();
+const bassEditTitle=box(0,21);
+const tempo=area(175,23,57,14);
+tap(1);
+const ambEditTitle=box(0,21);
+assert.notDeepEqual(ambEditTitle,bassEditTitle,'OCT+ não avançou BASS para AMB');
+assert.deepEqual(tempo,area(175,23,57,14),'OCT+ mudou BPM em EDIT');
+tap(0);assert.deepEqual(box(0,21),bassEditTitle);
+tap(0);assert.notDeepEqual(box(0,21),ambEditTitle);
+shortEdit();tap(9);
+const allScope=box(52,122);
+turn(1,1);assert.notDeepEqual(box(52,122),allScope,'SAVE não mostrou CURRENT CITY');
+turn(1,-1);assert.deepEqual(box(52,122),allScope,'SAVE não voltou para ALL CITIES');
+console.log('ARP inativo, navegação OCT em EDIT e escopo de SAVE passaram.');

@@ -1,0 +1,374 @@
+
+Discarded input sections
+
+ .text          0x0000000000000000        0x0 build/crt0.o
+ .text          0x0000000000000000        0x0 build/fm1_vec.o
+ .text          0x0000000000000000        0x0 build/fm1_isr.o
+ .text          0x0000000000000000        0x0 build/dinghy.o
+ .text.memcmp   0x0000000000000000       0x1a build/dinghy.o
+ .text.mdma_crc32
+                0x0000000000000000       0x10 build/dinghy.o
+ .text.mdma_store_capacity
+                0x0000000000000000        0x6 build/dinghy.o
+ .text.mdma_store_pending
+                0x0000000000000000       0x10 build/dinghy.o
+ .text.mdma_store_valid
+                0x0000000000000000       0x2a build/dinghy.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+XIP              0x0000000002000120 0x000000000008dfbc xr
+RAMTEXT          0x0000000001c00000 0x0000000000006000 xrw
+RAM              0x0000000001c08000 0x0000000000018000 xrw
+POOL             0x0000000001c20000 0x0000000000054000 rw
+NOINIT           0x0000000001c7c000 0x0000000000003d50 rw
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+
+.text           0x0000000002000120    0x3d464
+ *(.text.crt0)
+ .text.crt0     0x0000000002000120       0x38 build/crt0.o
+                0x0000000002000120                _start
+ *(.text*)
+ .text.fm1vec   0x0000000002000158      0x300 build/fm1_vec.o
+                0x0000000002000158                fm1_fatal_stubs
+ .text.fm1vec_common
+                0x0000000002000458       0x16 build/fm1_vec.o
+                0x0000000002000458                fm1_fatal_common
+ .text.isr_timer5
+                0x000000000200046e       0x10 build/fm1_isr.o
+                0x000000000200046e                isr_timer5
+ .text.isr_alnk0
+                0x000000000200047e       0x10 build/fm1_isr.o
+                0x000000000200047e                isr_alnk0
+ .text.key_release
+                0x000000000200048e       0x76 build/dinghy.o
+ .text.key_press
+                0x0000000002000504       0xa8 build/dinghy.o
+ .text.play_from
+                0x00000000020005ac       0x44 build/dinghy.o
+ .text.midi_in  0x00000000020005f0      0x2d4 build/dinghy.o
+ .text.fm1_lcd_wait
+                0x00000000020008c4       0x30 build/dinghy.o
+ .text.lcd_sync
+                0x00000000020008f4       0x44 build/dinghy.o
+ .text.lcd_cmd  0x0000000002000938       0x2c build/dinghy.o
+ .text.lcd_data
+                0x0000000002000964       0x36 build/dinghy.o
+ .text.lcd_window
+                0x000000000200099a       0x54 build/dinghy.o
+ .text.lcd_fill
+                0x00000000020009ee       0x40 build/dinghy.o
+ .text.cv_begin
+                0x0000000002000a2e       0x44 build/dinghy.o
+ .text.lcd_blit
+                0x0000000002000a72       0x26 build/dinghy.o
+ .text.draw_text_box
+                0x0000000002000a98      0x166 build/dinghy.o
+ .text.fm1__p33_xfer
+                0x0000000002000bfe       0x2e build/dinghy.o
+ .text.fm1__p33_op
+                0x0000000002000c2c       0x48 build/dinghy.o
+ .text.fm1_fault_c
+                0x0000000002000c74      0x17c build/dinghy.o
+                0x0000000002000c74                fm1_fault_c
+ .text.memset   0x0000000002000df0        0xc build/dinghy.o
+                0x0000000002000df0                memset
+ .text.memcpy   0x0000000002000dfc       0x10 build/dinghy.o
+                0x0000000002000dfc                memcpy
+ .text.fm1__led_lines
+                0x0000000002000e0c       0x3c build/dinghy.o
+ .text.fm1__sr_word
+                0x0000000002000e48       0x38 build/dinghy.o
+ .text.fm1__keys
+                0x0000000002000e80       0xb2 build/dinghy.o
+ .text.fm1__frame
+                0x0000000002000f32      0x15c build/dinghy.o
+ .text.sie_wr   0x000000000200108e       0x50 build/dinghy.o
+ .text.sie_rd   0x00000000020010de       0x56 build/dinghy.o
+ .text.uac_service
+                0x0000000002001134      0x1b6 build/dinghy.o
+ .text.e0_chunk
+                0x00000000020012ea       0x90 build/dinghy.o
+ .text.e0_send  0x000000000200137a       0x3e build/dinghy.o
+ .text.uac_ep4_reset
+                0x00000000020013b8       0x2c build/dinghy.o
+ .text.usb_poll
+                0x00000000020013e4      0x9fc build/dinghy.o
+ .text.fm1_timer5_irq
+                0x0000000002001de0      0x26c build/dinghy.o
+                0x0000000002001de0                fm1_timer5_irq
+ .text.uac_render_start
+                0x000000000200204c       0xfe build/dinghy.o
+ .text.voice_exp
+                0x000000000200214a       0x32 build/dinghy.o
+ .text.voice_edits
+                0x000000000200217c       0x84 build/dinghy.o
+ .text.groove_lead_controls
+                0x0000000002002200      0x130 build/dinghy.o
+ .text.voice_log
+                0x0000000002002330       0x2e build/dinghy.o
+ .text.voice_inv_q
+                0x000000000200235e       0x34 build/dinghy.o
+ .text.voice_filter_set
+                0x0000000002002392       0xd4 build/dinghy.o
+ .text.drum_start
+                0x0000000002002466      0x1c0 build/dinghy.o
+ .text.drum_hit
+                0x0000000002002626      0x370 build/dinghy.o
+ .text.hit_start
+                0x0000000002002996      0x170 build/dinghy.o
+ .text.live_mask
+                0x0000000002002b06       0x58 build/dinghy.o
+ .text.acid_note
+                0x0000000002002b5e       0xcc build/dinghy.o
+ .text.groove_pitch
+                0x0000000002002c2a       0x62 build/dinghy.o
+ .text.lead_cutoff
+                0x0000000002002c8c       0x28 build/dinghy.o
+ .text.lead_ghost_advance
+                0x0000000002002cb4      0x264 build/dinghy.o
+ .text.voice_filter
+                0x0000000002002f18       0x4e build/dinghy.o
+ .text.signed_tanh
+                0x0000000002002f66       0x44 build/dinghy.o
+ .text.drum_drive
+                0x0000000002002faa       0x32 build/dinghy.o
+ .text.lead_gain_at
+                0x0000000002002fdc       0x3e build/dinghy.o
+ .text.lead_saw
+                0x000000000200301a       0x44 build/dinghy.o
+ .text.lead_voice_run
+                0x000000000200305e      0x3fe build/dinghy.o
+ .text.qa_filter
+                0x000000000200345c       0xea build/dinghy.o
+ .text.qa_layer
+                0x0000000002003546      0x360 build/dinghy.o
+ .text.hit_sample
+                0x00000000020038a6      0x2a6 build/dinghy.o
+ .text.drone_run
+                0x0000000002003b4c      0x476 build/dinghy.o
+ .text.comp_gain
+                0x0000000002003fc2       0x76 build/dinghy.o
+ .text.groove_audio
+                0x0000000002004038     0x26ac build/dinghy.o
+ .text.uac_tap48
+                0x00000000020066e4      0x192 build/dinghy.o
+ .text.uac_tap  0x0000000002006876       0xa0 build/dinghy.o
+ .text.fm1_alnk0_irq
+                0x0000000002006916      0x122 build/dinghy.o
+                0x0000000002006916                fm1_alnk0_irq
+ .text.fm1_p33_read
+                0x0000000002006a38       0x44 build/dinghy.o
+ .text.fm1_enter_uboot
+                0x0000000002006a7c       0x3e build/dinghy.o
+ .text.fm1_input_init
+                0x0000000002006aba       0xbc build/dinghy.o
+ .text.lcd_spin
+                0x0000000002006b76       0x1c build/dinghy.o
+ .text.lcd_init
+                0x0000000002006b92       0xc4 build/dinghy.o
+ .text.usb_start
+                0x0000000002006c56       0xc4 build/dinghy.o
+ .text.recovery_poll
+                0x0000000002006d1a       0x5a build/dinghy.o
+ .text.usb_retry
+                0x0000000002006d74       0x3e build/dinghy.o
+ .text.usb_detach
+                0x0000000002006db2       0x26 build/dinghy.o
+ .text.fm1_delay_ms
+                0x0000000002006dd8       0x1a build/dinghy.o
+ .text.ota_take
+                0x0000000002006df2       0x9c build/dinghy.o
+ .text.ota_idle
+                0x0000000002006e8e       0x1e build/dinghy.o
+ .text.ota_wire_send
+                0x0000000002006eac      0x11e build/dinghy.o
+ .text.ota_send_msg
+                0x0000000002006fca       0xb0 build/dinghy.o
+ .text.ota_reply_identity
+                0x000000000200707a       0x4e build/dinghy.o
+ .text.ota_service
+                0x00000000020070c8       0x1c build/dinghy.o
+ .text.ota_show
+                0x00000000020070e4       0x64 build/dinghy.o
+ .text.ota_read
+                0x0000000002007148      0x104 build/dinghy.o
+ .text.ota_jl_enc
+                0x000000000200724c       0x26 build/dinghy.o
+ .text.ota_crc16
+                0x0000000002007272       0x2e build/dinghy.o
+ .text.st_read  0x00000000020072a0       0x46 build/dinghy.o
+ .text.ota_erase
+                0x00000000020072e6       0x3e build/dinghy.o
+ .text.fl_write
+                0x0000000002007324       0x4a build/dinghy.o
+ .text.ota_unstage
+                0x000000000200736e       0x18 build/dinghy.o
+ .text.ota_session
+                0x0000000002007386      0x5e6 build/dinghy.o
+ .text.groove_publish
+                0x000000000200796c       0x90 build/dinghy.o
+ .text.panel_publish
+                0x00000000020079fc       0x6c build/dinghy.o
+ .text.crc_update
+                0x0000000002007a68       0x2e build/dinghy.o
+ .text.check_slot
+                0x0000000002007a96      0x16e build/dinghy.o
+ .text.mdma_store_init
+                0x0000000002007c04       0x68 build/dinghy.o
+                0x0000000002007c04                mdma_store_init
+ .text.groove_read
+                0x0000000002007c6c       0x34 build/dinghy.o
+ .text.valid_lead_edits
+                0x0000000002007ca0       0x38 build/dinghy.o
+ .text.groove_decode
+                0x0000000002007cd8      0x74a build/dinghy.o
+ .text.groove_slot
+                0x0000000002008422       0xe8 build/dinghy.o
+ .text.groove_encode
+                0x000000000200850a      0x2cc build/dinghy.o
+ .text.autosave_fingerprint
+                0x00000000020087d6       0x3e build/dinghy.o
+ .text.mdma_store_request
+                0x0000000002008814       0x44 build/dinghy.o
+                0x0000000002008814                mdma_store_request
+ .text.platform_poll
+                0x0000000002008858      0x400 build/dinghy.o
+ .text.city_select
+                0x0000000002008c58       0xc2 build/dinghy.o
+ .text.panel_layer_turn
+                0x0000000002008d1a       0x32 build/dinghy.o
+ .text.panel_set_layers
+                0x0000000002008d4c       0x54 build/dinghy.o
+ .text.panel_adjust_global
+                0x0000000002008da0       0xe8 build/dinghy.o
+ .text.city_turn
+                0x0000000002008e88       0x36 build/dinghy.o
+ .text.panel_voice_edits
+                0x0000000002008ebe       0x4c build/dinghy.o
+ .text.midi_send
+                0x0000000002008f0a       0x4c build/dinghy.o
+ .text.panel_reset_city
+                0x0000000002008f56      0x1e0 build/dinghy.o
+ .text.mdma_store_load
+                0x0000000002009136       0x70 build/dinghy.o
+                0x0000000002009136                mdma_store_load
+ .text.mdma_store_service
+                0x00000000020091a6      0x1c8 build/dinghy.o
+                0x00000000020091a6                mdma_store_service
+ .text.fm1_led_key
+                0x000000000200936e       0x5c build/dinghy.o
+ .text.panel_peak_width
+                0x00000000020093ca       0x3c build/dinghy.o
+ .text.cv_rect  0x0000000002009406       0x64 build/dinghy.o
+ .text.panel_seq_playhead
+                0x000000000200946a       0x4e build/dinghy.o
+ .text.panel_city_colour
+                0x00000000020094b8       0x3a build/dinghy.o
+ .text.panel_box
+                0x00000000020094f2       0x50 build/dinghy.o
+ .text.panel_uint
+                0x0000000002009542       0x46 build/dinghy.o
+ .text.panel_text
+                0x0000000002009588      0x13e build/dinghy.o
+ .text.panel_city_name
+                0x00000000020096c6       0x36 build/dinghy.o
+ .text.panel_header
+                0x00000000020096fc      0x29e build/dinghy.o
+ .text.panel_fill_banner
+                0x000000000200999a       0x36 build/dinghy.o
+ .text.panel_row
+                0x00000000020099d0       0x32 build/dinghy.o
+ .text.panel_footer
+                0x0000000002009a02       0xe0 build/dinghy.o
+ .text.panel_listen_note
+                0x0000000002009ae2       0x4c build/dinghy.o
+ .text.panel_cards
+                0x0000000002009b2e      0x1b6 build/dinghy.o
+ .text.cv_line  0x0000000002009ce4       0x8a build/dinghy.o
+ .text.panel_circle
+                0x0000000002009d6e       0xbe build/dinghy.o
+ .text.panel_overlap
+                0x0000000002009e2c       0x64 build/dinghy.o
+ .text.app_main
+                0x0000000002009e90     0x39b8 build/dinghy.o
+ .text.fm1_cstart
+                0x000000000200d848      0x716 build/dinghy.o
+                0x000000000200d848                fm1_cstart
+ .text.groove_write
+                0x000000000200df5e       0x34 build/dinghy.o
+ .text.groove_erase
+                0x000000000200df92       0x66 build/dinghy.o
+ *(.rodata*)
+ *fill*         0x000000000200dff8        0x8 
+ .rodata        0x000000000200e000    0x2ed28 build/dinghy.o
+ .rodata.str1.1
+                0x000000000203cd28      0x772 build/dinghy.o
+                                        0x7bc (size before relaxing)
+ *fill*         0x000000000203d49a        0x2 
+ .rodata.cst16  0x000000000203d49c       0x60 build/dinghy.o
+ .rodata.cst8   0x000000000203d4fc       0x20 build/dinghy.o
+ .rodata.cst32  0x000000000203d51c       0x60 build/dinghy.o
+ .rodata.cst4   0x000000000203d57c        0x8 build/dinghy.o
+                0x000000000203d584                . = ALIGN (0x4)
+                0x000000000203d584                _etext = .
+
+.ram_text       0x0000000001c00000      0xb6c load address 0x000000000203d584
+                0x0000000001c00000                _rt_start = .
+ *(.ram_text*)
+ .ram_text      0x0000000001c00000      0xb6c build/dinghy.o
+                0x0000000001c00b6c                . = ALIGN (0x4)
+                0x0000000001c00b6c                _rt_end = .
+                0x000000000203d584                _rt_load = LOADADDR (.ram_text)
+
+.data           0x0000000001c08000      0x1f4 load address 0x000000000203e0f0
+                0x0000000001c08000                . = ALIGN (0x4)
+                0x0000000001c08000                _data_start = .
+ *(.data*)
+ .data          0x0000000001c08000      0x1f4 build/dinghy.o
+ *(.sdata*)
+                0x0000000001c081f4                . = ALIGN (0x4)
+                0x0000000001c081f4                _data_end = .
+                0x000000000203e0f0                _data_load = LOADADDR (.data)
+
+.bss            0x0000000001c08200     0xd1e0 load address 0x000000000203e2e4
+                0x0000000001c08200                _bss_start = .
+ *(.bss*)
+ .bss           0x0000000001c08200     0xd1e0 build/dinghy.o
+ *(.sbss*)
+ *(COMMON)
+                0x0000000001c153e0                . = ALIGN (0x4)
+                0x0000000001c153e0                _bss_end = .
+
+.pool           0x0000000001c20000    0x38c60
+                0x0000000001c20000                _pool_start = .
+ *(.pool*)
+ .pool          0x0000000001c20000    0x38c5e build/dinghy.o
+                0x0000000001c58c60                . = ALIGN (0x4)
+ *fill*         0x0000000001c58c5e        0x2 
+                0x0000000001c58c60                _pool_end = .
+
+.noinit         0x0000000001c7c000       0x4c
+ *(.noinit*)
+ .noinit        0x0000000001c7c000       0x4c build/dinghy.o
+                0x0000000001c7c000                fm1_crash
+                0x0000000001c7c040                bootguard
+                0x0000000001c74000                _guard0 = 0x1c74000
+                0x0000000001c74100                _ustack_lo = 0x1c74100
+                0x0000000001c7a000                _ustack_top = 0x1c7a000
+                0x0000000001c7a000                _guard1 = 0x1c7a000
+                0x0000000001c7a100                _sstack_lo = 0x1c7a100
+                0x0000000001c7c000                _sstack_top = 0x1c7c000
+
+/DISCARD/
+ *(.comment)
+ *(.note*)
+LOAD build/crt0.o
+LOAD build/fm1_vec.o
+LOAD build/fm1_isr.o
+LOAD build/dinghy.o
+OUTPUT(build/dinghy.elf elf32-pi32v2)

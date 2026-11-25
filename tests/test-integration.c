@@ -221,5 +221,23 @@ int main(void){
     crc[0]^=1;backup_command(5,0,crc,5);assert(!answer[7] && city_swing[active_city]==12);
     service();backup_command(6,0,0,0);assert(!answer[7]);
     puts("Backup USB: export, blocos, rejeição CRC e importação persistida passaram");
+    /* SAVE CURRENT CITY: only the active city is replaced in the stored main record. */
+    {
+        const unsigned c=active_city, o=c?0u:1u;
+        uint8_t stored[GROOVE_RECORD];uint32_t n;
+        assert(mdma_store_load(&groove_store,0,stored,sizeof stored,&n)&&n==GROOVE_RECORD);
+        uint8_t other_row[GROOVE_CITY_BYTES];
+        memcpy(other_row,stored+8+o*GROOVE_CITY_BYTES,sizeof other_row);
+        const uint8_t old_other=stored[8+o*GROOVE_CITY_BYTES];
+        groove_edits[o].bpm=old_other==170?171:170;groove_edits[c].bpm=111;
+        groove_sounding=groove_enabled=qa_running=0;
+        save_kind=0;save_current_city=true;
+        save_probe_poll(true);service();assert(!strcmp(shown,"GROOVE SAVED"));
+        assert(mdma_store_load(&groove_store,0,stored,sizeof stored,&n)&&n==GROOVE_RECORD);
+        assert(stored[8+c*GROOVE_CITY_BYTES]==111 && stored[8+o*GROOVE_CITY_BYTES]==old_other);
+        assert(!memcmp(other_row,stored+8+o*GROOVE_CITY_BYTES,sizeof other_row));
+        save_current_city=false;
+        puts("SAVE CURRENT CITY: só a cidade atual foi substituída no save principal");
+    }
     puts("groove: silence gate, per-city live controls, two saves, restart and fallback OK");
 }
