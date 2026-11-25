@@ -9,8 +9,12 @@ int main(void)
     panel_defaults();
     qa_midi(1,0xB0,10,5);qa_midi(1,0xB0,74,47);qa_midi(1,0xB0,71,90);
     assert(panel_mix[0][0][MIX_PAN]==5&&panel_mix[0][0][MIX_FLT]==47&&panel_mix[0][0][MIX_RES]==90);
-    qa_midi(1,0xB2,7,0); assert(panel_mix[0][2][MIX_VOL]==0&&panel_mix[0][3][MIX_VOL]==127);
+    qa_midi(1,0xB2,7,0); assert(panel_mix[0][2][MIX_VOL]==0&&panel_mix[0][3][MIX_VOL]==102);
     qa_midi(2,0xB2,7,127); assert(panel_mix[0][2][MIX_VOL]==127);
+    play_from(60, 100, 17);
+    stop_from(60, 1); assert(voice.gate);
+    stop_from(60, 18); assert(voice.gate);
+    stop_from(60, 17); assert(!voice.gate);
     qa_source=1;
     qa_midi(2,0xFA,0,0);assert(!qa_running);
     qa_midi(1,0xFA,0,0);assert(qa_running&&groove_enabled==63);

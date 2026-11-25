@@ -7,7 +7,18 @@ const [htmlPath, executable, profile = "0", mode] = process.argv.slice(2);
 const html = fs.readFileSync(htmlPath, 'utf8');
 const engine = html.match(/<script[^>]+id="eng"[^>]*>([\s\S]*?)<\/script>/)[1];
 const hook = `E.leadReference = (i) => {
-  if (i === 0) { applyKit(${[0, 2, 1][Number(profile)]}); P.leadAlien = ${mode === 'alien'}; }
+  if (i === 0) {
+    applyKit(${[0, 2, 1][Number(profile)]});
+    P.leadAlien = ${mode === 'alien'};
+    if (${mode === 'sync'}) { editModes.lead[3]=1; editTargets.lead[3]=.3; editsMoving=true; }
+    if (${mode === 'band'}) {
+      editModes.lead[0]=editModes.lead[1]=1;
+      editTargets.lead[0]=.2; editTargets.lead[1]=-.2; editsMoving=true;
+    }
+    if (${mode === 'linear'}) editModes.lead[2]=1;
+  }
+  if (i === 66150 && ${mode === 'offset'}) drift.touch(0,.6);
+  if (editsMoving && (i&31)===0) updateEdits();
 
   ghostOn = i < 176400;
   if (i === 44100) handOn(0);

@@ -162,7 +162,7 @@ assert.equal(x.fm1_flash_busy(), 0);
 assert(x.fm1_flash_revision() > revision, 'SAVE não gravou');
 assert.deepEqual(box(52,135), save, 'SAVE ficou preso na tela de gravação');
 const sectors = new Uint8Array(x.memory.buffer, x.fm1_flash() + 0xB1000, 8192);
-assert(Buffer.from(sectors).includes(Buffer.from('MGR3')));
+assert(Buffer.from(sectors).includes(Buffer.from('MGR5')));
 const restore = Buffer.alloc(2 * (4096 + 4));
 for (let i = 0; i < 2; i++) {
   const index = i * (4096 + 4);
@@ -201,3 +201,93 @@ assert(level(0.3) < 0.0001, 'ALL LAYERS não silenciou');
 tap(39);
 assert(level(0.5) > 0.001, 'ALL LAYERS não restaurou o áudio');
 console.log('LCD FM-1 com DMA temporizado: HOME, FX, Stage Map, EDIT, GLO, SCL, SEQ, SAVE A/B e PLAY passaram.');
+
+
+shortEdit();
+tap(34); // LEAD selected in EDIT without toggling the layer
+const free = box(171, 32);
+turn(5, 4);
+turn(1, 1);
+const sync = box(171, 32);
+assert.notDeepEqual(sync, free, 'GHOST RATE/SYNC não atualizou o LCD');
+tap(9);
+tap(1);
+tap(1);
+level(2);
+const leadSectors = new Uint8Array(x.memory.buffer, x.fm1_flash() + 0xB1000, 8192).slice();
+for (let i = 0; i < 2; i++)
+  restore.set(leadSectors.subarray(i * 4096, (i + 1) * 4096), i * (4096 + 4) + 4);
+boot();
+assert.equal(x.fm1_flash_restore(copy(restore), restore.length), 0);
+level(2);
+shortEdit();
+tap(34);
+turn(0, 3);
+assert(box(171, 32).every((value, index) => value === sync[index]),
+  'GHOST RATE/SYNC não voltou após reiniciar');
+console.log('GHOST RATE/SYNC atualizado e recuperado no FM-1 emulado.');
+
+tap(7);
+turn(0, 2);
+const hold = box(92, 20);
+turn(1, 1);
+assert.notDeepEqual(box(92, 20), hold, 'BASS MODE não mudou para ALIEN');
+turn(0, 2);
+const beforeCreate = headerCity();
+tap(1);
+tap(0);
+assert.deepEqual(headerCity(), beforeCreate, 'Cancelar geração mudou a cidade');
+const names = new Set();
+for (let i = 0; i < 5; ++i) {
+  tap(1);
+  tap(1);
+  const identity = Array.from(headerCity()).join(',');
+  assert(!names.has(identity), 'receita de cidade repetida');
+  names.add(identity);
+  tap(7);
+}
+tap(7);
+const generatedCity = headerCity();
+tap(9);
+tap(1);
+tap(1);
+level(2);
+const citySectors = new Uint8Array(x.memory.buffer, x.fm1_flash() + 0xB1000, 8192).slice();
+const savedEight = Buffer.from(citySectors).indexOf(Buffer.from([0x4d,0x47,0x52,0x35,7,8]));
+assert(savedEight >= 0, 'registro com oito cidades não foi gravado');
+for (let i = 0; i < 2; i++)
+  restore.set(citySectors.subarray(i * 4096, (i + 1) * 4096), i * (4096 + 4) + 4);
+boot();
+assert.equal(x.fm1_flash_restore(copy(restore), restore.length), 0);
+level(2);
+assert.deepEqual(headerCity(), generatedCity, 'cidade gerada não voltou do SAVE');
+tap(7);
+turn(0, 4);
+tap(1);
+const limit = box(82, 104);
+tap(1);
+assert.notDeepEqual(box(82, 104), limit, 'Aviso de limite não fechou');
+tap(0);
+turn(0, 1);
+tap(1);
+tap(1);
+assert.deepEqual(headerCity(), city0, 'Excluir cidade não voltou para Búzios');
+tap(7);
+turn(0, 1);
+turn(1, 1);
+tap(1);
+tap(1);
+assert.deepEqual(headerCity(), city0, 'Reset geral não selecionou Búzios');
+console.log('GLO: ALIEN, criação/cancelamento, cinco cidades, limite, exclusão e reset passaram.');
+
+for (const key of [24, 27, 29, 31, 34, 36]) {
+  tap(key);
+  const layerHeader = box(4, 18);
+  x.fm1_key(6, 1);
+  level(0.22);
+  x.fm1_key(6, 0);
+  level(0.2);
+  assert.notDeepEqual(box(4, 18), layerHeader, 'EDIT não abriu com toque físico mais longo');
+  shortEdit();
+}
+console.log('EDIT abre na camada selecionada nas seis camadas.');

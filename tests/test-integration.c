@@ -8,6 +8,7 @@
 #define FONT_S 0
 #define C_OFF 0
 #define LEAD_CUTOFF_LAST 32
+#define LEAD_CUTOFF_DEFAULT 14
 static bool flash_ok=true;
 static struct {uint32_t notes;} fm1_in;
 static uint8_t flash[8192];
@@ -24,7 +25,7 @@ static bool quiet(void){return !groove_enabled && !groove_sounding;}
 #define draw_text_box(x,y,w,f,t,c,a) snprintf(shown,sizeof shown,"%s",t)
 #include "mdma_save_probe.c"
 static void boot(void){groove_save_ready=false;active_city=0;lead_cutoff_position=14;save_probe_boot();}
-static void service(void){for(unsigned i=0;i<12;i++)save_probe_poll(false);}
+static void service(void){for(unsigned i=0;i<32;i++)save_probe_poll(false);}
 int main(void){
     panel_defaults();
     uint8_t legacy[GROOVE_LEGACY]={ 'M','G','R','1',0,1,0,0,132,0,0,80,80,50,14,132,0,0,80,80,50,14 };
@@ -34,11 +35,22 @@ int main(void){
     assert(groove_decode(v2,sizeof v2,true));
     assert(active_city==1 && layer_variation[1][5]==4 && layer_origin[1][5]==1);
     assert(panel_fx[1][0][FX_DLY]==80 && panel_fx[1][5][FX_DLY]==80);
+    uint8_t old[GROOVE_V3] = {'M','G','R','3',0,0,0,0};
+    for (unsigned city=0;city<FACTORY_COUNT;++city) {
+        uint8_t *record = old + 8 + city * GROOVE_V3_CITY;
+        record[0]=132; record[3]=80; record[4]=80; record[5]=50; record[6]=19;
+        for (unsigned layer=0;layer<LAYER_COUNT;++layer) {
+            record[105+layer]=(uint8_t)city; record[99+layer]=city==1 ? 4 : 0;
+        }
+    }
+    assert(groove_decode(old,sizeof old,true));
+    assert(lead_edit_detent(city_lead_home[0],LEAD_EDIT_CUTOFF)==5);
+    assert(city_ghost_time_q12[0]==0);
     active_city=0;
     panel_defaults();
     int32_t l_mix=0,r_mix=0;
     panel_mix[0][0][MIX_PAN]=0;panel_publish();
-    qa_layer(0,1000,1000,&l_mix,&r_mix);assert(l_mix==1000&&r_mix==0);
+    qa_layer(0,1000,1000,&l_mix,&r_mix);assert(l_mix==803&&r_mix==0);
     panel_defaults();
 
     int32_t stereo[256]={0};
@@ -114,6 +126,11 @@ int main(void){
     layer_variation[1][3]=7;layer_origin[1][3]=2;
     panel_drum[1][4][7]=0x8004;city_tonic[1]=11;city_major[1]=1;city_swing[1]=22;
     panel_fx[1][3][FX_SAT]=67;
+    const uint32_t edits = (1u << (24u+LEAD_EDIT_RATE)) | (7u << (6u*LEAD_EDIT_RATE));
+    city_lead_home[1]=edits;
+    city_lead_borrowed[1]=1u << (24u+LEAD_EDIT_GLIDE);
+    city_ghost_offset[1]=-4096;
+    city_ghost_time_q12[1]=16384;
     lead_cutoff_position=21;save_probe_poll(true);service();assert(erases==2);
     memset(groove_edits,0,sizeof groove_edits);
     memset(layer_variation,0,sizeof layer_variation);
@@ -123,11 +140,15 @@ int main(void){
     memset(city_major,0,sizeof city_major);
     memset(city_swing,0,sizeof city_swing);
     panel_drum[1][4][7]=0;
+    city_lead_home[1]=city_lead_borrowed[1]=city_ghost_time_q12[1]=0;
+    city_ghost_offset[1]=0;
     boot();
     assert(!strcmp(shown,"RIO    S1 V5 BPM 118"));
     assert(active_city==1 && groove_edits[1].tone==77 && lead_cutoff_position==21);
     assert(panel_fx[1][0][FX_DLY]==100 && panel_fx[1][0][FX_REV]==88);
     assert(panel_mix[1][3][MIX_FLT]==98 && panel_kick[1][5]==0x4001);
+    assert(city_lead_home[1]==edits && city_lead_borrowed[1]==(1u << (24u+LEAD_EDIT_GLIDE)));
+    assert(city_ghost_time_q12[1]==16384 && city_ghost_offset[1]==-4096);
     assert(layer_variation[1][3]==7 && layer_origin[1][3]==2);
     assert(panel_drum[1][4][7]==0x8004 && city_tonic[1]==11 && city_major[1]==1 && city_swing[1]==22);
     assert(panel_fx[1][3][FX_SAT]==67 && panel_fx[1][0][FX_SAT]==0);
