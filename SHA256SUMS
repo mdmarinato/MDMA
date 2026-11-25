@@ -1,4 +1,6 @@
-5d86018a3ac1f9f50778bb73c5090eeefc5393ae810b8294729ee044b047a7e5  build/MDMA-0.5.5-alpha.fwsc
-3f5c89c07aa3a76271b6fdc8ff91931ac58be5523583811adaaaa32a0c15c06b  build/MDMA-0.5.5-alpha.map
-14438f34b7b499df757e6d2c61f9b0535d07d396be032bf648b0ee5c1f386615  firmware/MDMA-0.5.5-alpha.patch
+bde8ba9db60bf3119aef007d7c8e4b8c0b28283ad62b9fa67c6345a3561e033f  build/MDMA-0.5.5-alpha-lcd.fwsc
+c9cf45fbb19163380a412869c5824eb53ec7785681998efeecac3cd51ed802fa  build/MDMA-0.5.5-alpha-lcd.map
+fc2db458d40043c4c241c2ac6e38c97b5680181bbc251e13f64cdaad3d893285  firmware/MDMA-0.5.5-alpha-lcd.patch
 50302022da4ab83527823f9576983529f08755178d080cee3c15a184e6f83d3c  reference/stable-v0.5.html
+bb200d83cb77e88fc29fc7fd3bdb4fc722193666f121accf0526cae62e42947e  preview/home-fx-seq-stage.png
+32487c0ccd106f3817fa2a49ad8a87a2fddd4543692f10ae70ec36a13c496945  preview/edit-scl-glo-save.png

@@ -1,12 +1,16 @@
 diff --git a/firmware/src/dinghy.c b/firmware/src/dinghy.c
-index b71500b..7c68e85 100644
+index b71500b..191883f 100644
 --- a/firmware/src/dinghy.c
 +++ b/firmware/src/dinghy.c
-@@ -17,87 +17,63 @@
+@@ -17,87 +17,67 @@
   * What platform.c offers: docs/API.md. The chip's rules: docs/RULES.md. */
  static void app_idle(void);
  #define LCD_IDLE app_idle                       /* while the screen's DMA runs: MIDI in (platform.c) */
 +#define APP_NAME "MDMA"
++#if !defined(DINGHY_HOST) && !BOARD_SMK37
++#define MDMA_PANEL_LCD
++#define CV_MAX (240u * 240u)
++#endif
  #include "platform.c"
 +#include <stdbool.h>
  #if BOARD_SMK37
@@ -27,11 +31,11 @@ index b71500b..7c68e85 100644
 -static volatile uint32_t bend_q16 = 65536;      /* the pitch wheel: the steps times this / 65536 */
 +} voice;
 +static volatile uint32_t bend_q16 = 65536;
- 
--static int32_t sine(uint32_t ph)                /* a full cycle over 2^32 -> -32767..32767 (a refined parabola, ~0.1 %) */
++
 +enum { LEAD_CUTOFF_DEFAULT = 14, LEAD_CUTOFF_LAST = 32 };
 +static int32_t lead_cutoff_position = LEAD_CUTOFF_DEFAULT;
-+
+ 
+-static int32_t sine(uint32_t ph)                /* a full cycle over 2^32 -> -32767..32767 (a refined parabola, ~0.1 %) */
 +static void lead_cutoff_turn(int32_t detents)
  {
 -    int32_t x = (int32_t)ph >> 16, ax = x < 0 ? -x : x, y, ay;
@@ -117,11 +121,15 @@ index b71500b..7c68e85 100644
  }
  
  /* ---- the screen: the name, the last note big, the keyboard with what sounds, the octave */
-@@ -172,12 +148,55 @@ static void draw_midi(uint32_t src, uint32_t bpm, uint32_t running)   /* where n
+@@ -172,12 +152,62 @@ static void draw_midi(uint32_t src, uint32_t bpm, uint32_t running)   /* where n
  static struct { uint8_t oct, ch; } set = {0, 0};   /* what survives a power-off (add yours, up to SECTOR_MAX bytes) */
  static uint32_t idle_ok, midi_src, clk_n, clk_t0, clk_bpm, clk_run, clk_beat_ms;
  
 +static unsigned qa_clock_count;
++
++#ifdef MDMA_PANEL_LCD
++static void panel_show(void);
++#endif
 +
 +static void qa_midi(uint32_t src, uint8_t st, uint8_t d1, uint8_t d2)
 +{
@@ -131,6 +139,9 @@ index b71500b..7c68e85 100644
 +            const unsigned layer=st&15u;
 +            panel_mix[active_city][layer][control]=d2;
 +            mix_controls[layer]=pack_controls(panel_mix[active_city][layer]);
++#ifdef MDMA_PANEL_LCD
++            panel_show();
++#endif
 +        }
 +    }
 +    if (!qa_source || src != qa_source || qa_save_pending) return;
@@ -173,16 +184,16 @@ index b71500b..7c68e85 100644
          if (st == 0xF8u) {                      /* clock: 24 a quarter note */
              if (clk_n % 24u == 0u) {
                  if (clk_n) {
-@@ -203,10 +222,35 @@ static void app_idle(void)
+@@ -203,10 +233,34 @@ static void app_idle(void)
      if (idle_ok) midi_in();
  }
  
-+#ifndef DINGHY_HOST
-+#if !BOARD_SMK37
++#ifdef MDMA_PANEL_LCD
 +#include "mdma_save_probe.c"
 +#include "mdma_panel.c"
 +#endif
 +
++#if !defined(DINGHY_HOST) && !defined(MDMA_PANEL_LCD)
 +static void draw_audio_peak(uint32_t ticks)
 +{
 +    uint32_t us = ticks / FM1_TICKS_PER_US;
@@ -199,18 +210,18 @@ index b71500b..7c68e85 100644
  static void app_main(void)
  {
 -    uint32_t prev = 0, k, t_change = 0, dirty = 0, lit_drawn = ~0u, note_drawn = ~0u, status_drawn = ~0u;
-+    uint32_t prev = 0, k, t_change = 0, dirty = 0, note_drawn = ~0u, status_drawn = ~0u;
-     uint32_t midi_drawn = ~0u;
-+#if defined(DINGHY_HOST) || BOARD_SMK37
-+    uint32_t lit_drawn = ~0u;
+-    uint32_t midi_drawn = ~0u;
++    uint32_t prev = 0, k, t_change = 0, dirty = 0;
++#ifndef MDMA_PANEL_LCD
++    uint32_t lit_drawn = ~0u, note_drawn = ~0u, status_drawn = ~0u, midi_drawn = ~0u;
 +#endif
-+#ifndef DINGHY_HOST
++#if !defined(DINGHY_HOST) && !defined(MDMA_PANEL_LCD)
 +    uint32_t perf_drawn=0, perf_checked_ms=0;
 +#endif
      uint8_t held[27] = {0};                     /* the note each key plays */
  #if BOARD_SMK37
      static const uint8_t WHITE[16] = {0, 2, 4, 6, 7, 9, 11, 12, 14, 16, 18, 19, 21, 23, 24, 26};   /* white key -> key */
-@@ -214,18 +258,36 @@ static void app_main(void)
+@@ -214,18 +268,37 @@ static void app_main(void)
      smk_pw_t wheel = {0};
      smk_pad_events = 1;                         /* the pads as events (smk_pad_take): they play here, lit while they sound */
  #endif
@@ -221,21 +232,23 @@ index b71500b..7c68e85 100644
 +    groove_publish();
 +    panel_defaults();
  
++#ifdef MDMA_PANEL_LCD
++    qa_ready_mask = 0;
++    save_probe_boot();
++#else
      lcd_fill(0, 0, 240, 240, C_BLACK);
      draw_text_box(0, 18, 240, &FONT_L, APP_NAME, C_ACC, 1);
 -    draw_text_box(0, 52, 240, &FONT_S, "a sine to build on  v" APP_VER, C_OFF, 1);
 +    draw_text_box(0, 52, 240, &FONT_S, "FW  v" APP_VER, C_OFF, 1);
-+
-+#if !defined(DINGHY_HOST) && !BOARD_SMK37
-+    qa_ready_mask = 0;
-+    save_probe_boot();
 +#endif
  
      for (;;) {
-         uint32_t keys, down, up, rel, b, lit = 0, out_ch = set.ch ? set.ch - 1u : 0u, st;
+-        uint32_t keys, down, up, rel, b, lit = 0, out_ch = set.ch ? set.ch - 1u : 0u, st;
 -        int32_t oct = (int8_t)set.oct, e;
++        uint32_t keys, down, up, rel, b, lit = 0, out_ch = set.ch ? set.ch - 1u : 0u;
 +        int32_t oct = (int8_t)set.oct;
-+#if defined(DINGHY_HOST) || BOARD_SMK37
++#ifndef MDMA_PANEL_LCD
++        uint32_t st;
 +        int32_t e;
 +#endif
          uint32_t base = (uint32_t)((int32_t)KEY0 + 12 * oct);
@@ -251,7 +264,7 @@ index b71500b..7c68e85 100644
  
          keys = fm1_in.notes;                    /* bit k: key k (0 = F3 .. 26 = G5) */
          down = keys & ~prev;
-@@ -236,9 +298,32 @@ static void app_main(void)
+@@ -236,9 +309,32 @@ static void app_main(void)
              uint32_t vel = fm1_in.key_vel[SMK_KEY_F3 + k];   /* the SMK's keys feel the velocity */
  #else
              uint32_t vel = 100;
@@ -285,7 +298,7 @@ index b71500b..7c68e85 100644
          }
  #if BOARD_SMK37
          while ((e = smk_extkey_take()) >= 0) {  /* the keys left and right of the FM-1's 27: key << 8 | velocity */
-@@ -260,6 +345,15 @@ static void app_main(void)
+@@ -260,6 +356,15 @@ static void app_main(void)
  #endif
  
          b = fm1_input_edges(&rel);              /* buttons pressed since the last call (bit = button id) */
@@ -301,7 +314,7 @@ index b71500b..7c68e85 100644
          if (b & (1u << BTN_OCT_DOWN) && oct > -2) { set.oct = (uint8_t)(oct - 1); dirty = 1; t_change = fm1_ms; }
          if (b & (1u << BTN_OCT_UP) && oct < 2) { set.oct = (uint8_t)(oct + 1); dirty = 1; t_change = fm1_ms; }
          if ((e = fm1_enc_take(ENC_PRESETS)) != 0) {   /* detents turned since the last call */
-@@ -269,19 +363,35 @@ static void app_main(void)
+@@ -269,19 +374,51 @@ static void app_main(void)
              t_change = fm1_ms;
          }
  
@@ -309,11 +322,11 @@ index b71500b..7c68e85 100644
 +
          midi_in();
 +#if !defined(DINGHY_HOST) && !BOARD_SMK37
-+        if (save_requested) panel_render();
 +        save_probe_poll(save_requested);
++        panel_meter_active = page == PAGE_HOME || page == PAGE_FX;
 +        if (qa_source && qa_running && qa_clock_seen && fm1_ms - qa_last_clock > 500u) {
 +            qa_running = groove_enabled = 0;
-+            groove_show("EXT WAIT");
++            panel_show();
 +        }
 +#endif
          if (clk_bpm && fm1_ms - clk_t0 > 2000u) clk_bpm = 0, clk_run = 0;   /* the clock has stopped coming */
@@ -330,6 +343,21 @@ index b71500b..7c68e85 100644
          fm1_led_key(BTN_OCT_DOWN, oct < 0);
          fm1_led_key(BTN_OCT_UP, oct > 0);
 -        fm1_led_key(BTN_PLAY, clk_run || (clk_bpm && fm1_ms - clk_beat_ms < 80u));   /* lit: running; a blink a beat */
++#ifdef MDMA_PANEL_LCD
++        fm1_led_key(BTN_HOME, page == PAGE_HOME || page == PAGE_STAGE);
++        fm1_led_key(BTN_FX, page == PAGE_FX);
++        fm1_led_key(BTN_SEQ, page == PAGE_SEQ || fill_active || fill_queued);
++        fm1_led_key(BTN_EDIT, page == PAGE_EDIT);
++        fm1_led_key(BTN_SEL, page == PAGE_SCL);
++        fm1_led_key(BTN_GLO, page == PAGE_GLO);
++        fm1_led_key(BTN_SAVE, page == PAGE_SAVE);
++        static const uint8_t scene_keys[] = {1,3,5,8};
++        static const uint8_t layer_keys[] = {10,13,15,17,20,22};
++        fm1_led_key(KEY_LED(25), qa_ready_mask != 0);
++        fm1_led_key(KEY_LED(scene_keys[groove_edits[active_city].scene]), 1);
++        for (unsigned i = 0; i < LAYER_COUNT; ++i)
++            fm1_led_key(KEY_LED(layer_keys[i]), (qa_ready_mask >> layer_order[i]) & 1u);
++#else
 +        fm1_led_key(BTN_HOME, groove_enabled != 0);
 +        fm1_led_key(BTN_FX, (groove_enabled & GROOVE_DRUMS) != 0);
 +        fm1_led_key(BTN_SEQ, (groove_enabled & GROOVE_BASS) != 0);
@@ -337,21 +365,20 @@ index b71500b..7c68e85 100644
 +        fm1_led_key(BTN_LFO, (groove_enabled & GROOVE_LEAD) != 0);
 +        fm1_led_key(BTN_ENV, (groove_enabled & GROOVE_AMB) != 0);
 +        fm1_led_key(BTN_ARP, (groove_enabled & GROOVE_SPARKS) != 0);
++#endif
 +        fm1_led_key(BTN_PLAY, (groove_enabled & 3u) || clk_run || (clk_bpm && fm1_ms - clk_beat_ms < 80u));   /* lit: running; a blink a beat */
  #if BOARD_SMK37
          for (k = 0; k < 16u; k++) {             /* a pad glows lilac while its key sounds */
              uint32_t w = k < 8u ? k + 8u : k - 8u, on = lit >> WHITE[w] & 1u;
-@@ -291,14 +401,26 @@ static void app_main(void)
+@@ -291,14 +428,25 @@ static void app_main(void)
  #endif
  
          idle_ok = 1;                            /* the drawing below may read MIDI meanwhile (LCD_IDLE) */
 -        if (lit != lit_drawn) { lit_drawn = lit; draw_keys(lit); }   /* redraw only what changed */
-+#if !defined(DINGHY_HOST) && !BOARD_SMK37
-+        if (!qa_save_pending) panel_render();
-+#endif
-+#if defined(DINGHY_HOST) || BOARD_SMK37
++#ifdef MDMA_PANEL_LCD
++        panel_render();
++#else
 +        if (lit != lit_drawn) { lit_drawn = lit; draw_keys(lit); }
-+#endif   /* redraw only what changed */
          if (last_note != note_drawn) { note_drawn = last_note; draw_note(); }
          if ((st = (uint32_t)(oct + 2) | (uint32_t)set.ch << 4) != status_drawn) { status_drawn = st; draw_status(oct, set.ch); }
          if ((st = midi_src | clk_bpm << 2 | clk_run << 12) != midi_drawn) { midi_drawn = st; draw_midi(midi_src, clk_bpm, clk_run); }
@@ -361,6 +388,7 @@ index b71500b..7c68e85 100644
 +            perf_checked_ms = fm1_ms;
 +            if (ticks != perf_drawn) { perf_drawn = ticks; draw_audio_peak(ticks); }
 +        }
++#endif
 +#endif
          idle_ok = 0;
  
@@ -372,10 +400,10 @@ index b71500b..7c68e85 100644
      }
 diff --git a/firmware/src/mdma_groove.c b/firmware/src/mdma_groove.c
 new file mode 100644
-index 0000000..64af3d0
+index 0000000..51c3dfa
 --- /dev/null
 +++ b/firmware/src/mdma_groove.c
-@@ -0,0 +1,250 @@
+@@ -0,0 +1,262 @@
 +#include <stdbool.h>
 +/* SPDX-License-Identifier: GPL-3.0-only */
 +typedef struct {
@@ -460,6 +488,9 @@ index 0000000..64af3d0
 +
 +static void groove_audio(int32_t *out, uint32_t n, bool manual)
 +{
++#ifdef MDMA_PANEL_LCD
++    for (unsigned layer = 0; layer < LAYER_COUNT; ++layer) meter_peaks[layer] = 0;
++#endif
 +    const uint32_t cfg = groove_command;
 +    if (queued_city == CITY_COUNT) playing_city = active_city;
 +    const unsigned enabled = groove_enabled, tone = groove_tone;
@@ -505,6 +536,9 @@ index 0000000..64af3d0
 +            const unsigned bass_variation = (patterns >> 3) & 7u;
 +            const GroovePattern *drums = &groove_patterns[(patterns >> 18) & 3u][current_scene][drum_variation];
 +            const GroovePattern *bass = &groove_patterns[(patterns >> 20) & 3u][current_scene][bass_variation];
++#ifdef MDMA_PANEL_LCD
++            panel_drum_position = ((current_scene + 4u * drum_variation) << 4) | groove_step;
++#endif
 +            const uint16_t bit = (uint16_t)(1u << groove_step);
 +            if (enabled & 1u) {
 +                const unsigned slot = current_scene + 4u * drum_variation;
@@ -602,6 +636,12 @@ index 0000000..64af3d0
 +        out[2*i] += left;
 +        out[2*i+1] += right;
 +    }
++#ifdef MDMA_PANEL_LCD
++    for (unsigned layer = 0; layer < LAYER_COUNT; ++layer) {
++        const unsigned decay = (panel_pcm_peaks[layer] * 15u) >> 4;
++        panel_pcm_peaks[layer] = decay > meter_peaks[layer] ? decay : meter_peaks[layer];
++    }
++#endif
 +    groove_sounding = groove_enabled || bass_amp || drum_env[0] || drum_env[1] ||
 +                      drum_env[2] || drum_env[3] || drum_env[4] || drum_env[5] || melody_sounding() ||
 +                      lead_ghost.gain || lead_hand.gain;
@@ -760,6 +800,635 @@ index 0000000..0d8e766
 +            {{4369, 43690, 10272, 4112, 8706, 8}, {0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, 1, 0}
 +        }
 +    }
++};
+diff --git a/firmware/src/mdma_lcd.c b/firmware/src/mdma_lcd.c
+new file mode 100644
+index 0000000..1a9441b
+--- /dev/null
++++ b/firmware/src/mdma_lcd.c
+@@ -0,0 +1,549 @@
++/* SPDX-License-Identifier: GPL-3.0-only */
++/* Native rendering of the 240 × 240 stable-v0.5 LCD. */
++#include "mdma_lcd_font.h"
++
++#define PANEL_BG RGB(8,8,8)
++#define PANEL_ROW RGB(16,16,16)
++#define PANEL_DIM RGB(42,42,42)
++#define PANEL_OFF RGB(184,191,192)
++#define PANEL_HIT RGB(107,107,107)
++
++static const uint8_t layer_order[] = {0,1,4,2,3,5}; /* display order, mapped to MIDI order */
++static const uint16_t city_ink[] = {RGB(0,255,133), RGB(255,23,68), C_WHITE};
++static const uint16_t layer_ink[] = {RGB(255,138,0), RGB(155,48,255), RGB(244,255,0),
++                                     RGB(255,43,214), RGB(0,229,255), RGB(46,107,255)};
++static const uint16_t scene_ink[] = {RGB(140,255,0), RGB(255,196,0), RGB(255,92,138), RGB(106,92,255)};
++static const char *const scene_names[] = {"INTRO","GROOVE","TENSION","PEAK"};
++static const char *const note_names[] = {"A","A#","B","C","C#","D","D#","E","F","F#","G","G#"};
++static const char *const lcd_cities[] = {"B@ZIOS","RIO","IBIZA"};
++static const char *const drum_names[] = {"KICK","HAT","OPEN","CLAP","PERC","NOISE"};
++static const char *panel_notice;
++static uint32_t panel_notice_until;
++static unsigned visible_levels[LAYER_COUNT], visible_playhead = 16u;
++static uint32_t panel_live_at;
++
++
++enum { ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT };
++
++static unsigned panel_text_length(const char *text)
++{
++    unsigned size = 0;
++    while (text[size]) ++size;
++    return size;
++}
++
++static int panel_text(int x, int baseline, unsigned scale, uint16_t colour, unsigned align, const char *text)
++{
++    const unsigned length = panel_text_length(text);
++    if (!length) return x;
++    const int width = (int)((length * 6u - 1u) * scale);
++    if (align == ALIGN_RIGHT) x -= width;
++    if (align == ALIGN_CENTER) x -= width / 2;
++    const int y = baseline - 7 * (int)scale + 1;
++    for (; *text; ++text, x += 6 * (int)scale) {
++        const unsigned letter = (uint8_t)*text;
++        const uint8_t *bits = lcd_glyphs[(letter >= 32 && letter <= 126 ? letter : '?') - 32];
++        for (unsigned column = 0; column < 5; ++column)
++            for (unsigned row = 0; row < 7; ++row)
++                if ((bits[column] >> row) & 1u)
++                    cv_rect(x + (int)(column * scale), y + (int)(row * scale), scale, scale, colour);
++        if (letter == '@') {
++            cv_rect(x + (int)scale, y - (int)scale, scale, scale, colour);
++            cv_rect(x + 2 * (int)scale, y - 2 * (int)scale, scale, scale, colour);
++        }
++    }
++    return x;
++}
++
++static void panel_box(int x, int y, int width, int height, uint16_t colour)
++{
++    cv_rect(x, y, width, 1, colour);
++    cv_rect(x, y + height - 1, width, 1, colour);
++    cv_rect(x, y + 1, 1, height - 2, colour);
++    cv_rect(x + width - 1, y + 1, 1, height - 2, colour);
++}
++
++static void panel_row(int y, int height, bool selected, uint16_t colour)
++{
++    cv_rect(8, y, 224, height, PANEL_ROW);
++    if (selected) panel_box(8, y, 224, height, colour);
++}
++
++static char *panel_uint(char *out, unsigned value)
++{
++    char digits[10];
++    unsigned count = 0;
++    do {
++        digits[count++] = (char)('0' + value % 10u);
++        value /= 10u;
++    } while (value);
++    while (count) *out++ = digits[--count];
++    *out = 0;
++    return out;
++}
++
++static unsigned panel_master_level(void)
++{
++    const unsigned step = ((unsigned)master_q12 + 16u) >> 5;
++    return step > 128u ? 128u : step;
++}
++
++static void panel_header(const char *title, uint16_t colour)
++{
++    const uint16_t city = city_ink[active_city];
++    const unsigned bpm = qa_source && qa_running ? qa_external_bpm : groove_edits[active_city].bpm;
++    char tempo[12] = "BPM ";
++    panel_uint(tempo + 4, bpm);
++    const char *note = note_names[city_tonic[active_city]];
++    char key[12] = "TOM ";
++    char *suffix = key + 4;
++    while (*note) *suffix++ = *note++;
++    memcpy(suffix, city_major[active_city] ? " MAJ" : " MIN", 5);
++    char master[17] = "MASTER ";
++    const unsigned level = panel_master_level();
++    if (level) {
++        const unsigned db = (unsigned)-panel_master_db[level];
++        char *start = master + 7;
++        if (db) *start++ = '-';
++        char *end = panel_uint(start, db / 10u);
++        *end++ = '.';
++        *end++ = (char)('0' + db % 10u);
++        memcpy(end, " DB", 4);
++    } else {
++        memcpy(master + 7, "MUTE", 5);
++    }
++
++    cv_rect(8, 1, 224, 3, city);
++    panel_text(8, 20, panel_text_length(title) > 13 ? 1 : 2, colour, ALIGN_LEFT, title);
++    cv_rect(9, 25, 7, 5, city);
++    cv_rect(11, 30, 3, 2, city);
++    cv_pset(12, 32, city);
++    cv_rect(12, 26, 2, 2, PANEL_BG);
++    panel_text(21, 32, 1, city, ALIGN_LEFT, lcd_cities[active_city]);
++    panel_text(232, 14, 1, C_WHITE, ALIGN_RIGHT, tempo);
++    panel_text(232, 25, 1, C_WHITE, ALIGN_RIGHT, key);
++    panel_text(232, 36, 1, C_WHITE, ALIGN_RIGHT, master);
++}
++
++static void panel_footer(int y, bool right)
++{
++    const unsigned origin = layer_origin[active_city][selected_layer];
++    const bool borrowed = origin != active_city;
++    const char *name = layer_label[selected_layer];
++    const int width = (int)((panel_text_length(name) + 2u + (borrowed ? panel_text_length(lcd_cities[origin]) + 3u : 0u)) * 6u - 1u);
++    int x = right ? 232 - width : 8;
++    x = panel_text(x, y, 1, layer_ink[selected_layer], ALIGN_LEFT, "> ");
++    x = panel_text(x, y, 1, layer_ink[selected_layer], ALIGN_LEFT, name);
++    if (borrowed) {
++        x = panel_text(x, y, 1, layer_ink[selected_layer], ALIGN_LEFT, right ? " - " : " * ");
++        panel_text(x, y, 1, city_ink[origin], ALIGN_LEFT, lcd_cities[origin]);
++    }
++}
++
++static void panel_cards(void)
++{
++    const bool fx = page == PAGE_FX;
++    const uint8_t *values = fx ? panel_fx[active_city][selected_layer] : panel_mix[active_city][selected_layer];
++    const char *const *names = fx ? fx_label : mix_label;
++    const uint16_t colour = layer_ink[selected_layer];
++    for (unsigned i = 0; i < 4; ++i) {
++        const int x = 8 + 56 * (int)i;
++        const bool off = (fx || i == MIX_VOL) && values[i] == 0;
++        cv_rect(x, 211, 54, 24, PANEL_ROW);
++        panel_box(x, 211, 54, 24, off ? PANEL_DIM : colour);
++        char label[8] = {0};
++        memcpy(label, names[i], 3);
++        if (off) memcpy(label + 3, " OFF", 5);
++        panel_text(x + 27, 222, 1, off ? PANEL_OFF : colour, ALIGN_CENTER, label);
++        if (off) continue;
++        const int start = fx || i == MIX_VOL ? 0 : 22;
++        const int end = (44 * values[i] + 63) / 127;
++        cv_rect(x + 5, 227, 44, 3, PANEL_DIM);
++        cv_rect(x + 5 + (start < end ? start : end), 227, start < end ? end - start : start - end, 3, colour);
++        if (start) cv_rect(x + 5 + start, 226, 1, 5, PANEL_OFF);
++        cv_rect(x + 5 + (end == 44 ? 43 : end), 226, 1, 5, colour);
++    }
++}
++
++static void panel_fill_banner(int x, int y, unsigned align)
++{
++    const char *label = fill_active ? "FILL IN" : fill_queued ? "FILL NEXT" : 0;
++    if (label) panel_text(x, y, 1, layer_ink[0], align, label);
++}
++
++static void panel_home(void)
++{
++    const unsigned scene = groove_edits[active_city].scene;
++    const unsigned variation = layer_variation[active_city][selected_layer];
++    const uint16_t selected_ink = layer_ink[selected_layer];
++    panel_header(scene_names[scene], scene_ink[scene]);
++    panel_fill_banner(115, 32, ALIGN_CENTER);
++    for (unsigned i = 0; i < 8; ++i) {
++        const int x = 8 + 28 * (int)i;
++        const char numeral[] = {(char)('1' + i), 0};
++        cv_rect(x, 42, 26, 14, variation == i ? selected_ink : PANEL_ROW);
++        panel_text(x + 13, 52, 1, variation == i ? C_BLACK : selected_ink, ALIGN_CENTER, numeral);
++    }
++    for (unsigned i = 0; i < LAYER_COUNT; ++i) {
++        const unsigned layer = layer_order[i];
++        const int y = 61 + 22 * (int)i;
++        const uint16_t colour = layer_ink[layer];
++        const bool selected = layer == selected_layer, on = qa_ready_mask & (1u << layer);
++        panel_row(y, 20, selected, colour);
++        if (selected) panel_text(13, y + 14, 1, colour, ALIGN_LEFT, ">");
++        panel_text(23, y + 14, 1, on || selected ? C_WHITE : PANEL_OFF, ALIGN_LEFT, layer_label[layer]);
++        for (unsigned j = 0; j < 8; ++j) {
++            const bool current = j == layer_variation[active_city][layer];
++            cv_rect(76 + 11 * j, y + 7, 8, 6, current ? (on || selected ? colour : PANEL_OFF) : PANEL_DIM);
++        }
++        cv_rect(171, y + 7, 55, 6, PANEL_DIM);
++        cv_rect(171, y + 7, visible_levels[layer], 6, colour);
++    }
++    panel_footer(204, false);
++    panel_cards();
++}
++
++static void panel_circle(int x, int y, int radius, uint16_t line, uint16_t fill, int level)
++{
++    for (int dy = -radius; dy <= radius; ++dy)
++        for (int dx = -radius; dx <= radius; ++dx) {
++            const int square = dx * dx + dy * dy;
++            if (square > radius * radius) continue;
++            if (square >= (radius - 1) * (radius - 1)) cv_pset(x + dx, y + dy, line);
++            else if (radius - dy < level) cv_pset(x + dx, y + dy, fill);
++        }
++}
++
++typedef struct { int x, y, width, height; } PanelRect;
++
++static int panel_overlap(PanelRect a, PanelRect b)
++{
++    const int x0 = a.x > b.x ? a.x : b.x, y0 = a.y > b.y ? a.y : b.y;
++    const int x1 = a.x + a.width < b.x + b.width ? a.x + a.width : b.x + b.width;
++    const int y1 = a.y + a.height < b.y + b.height ? a.y + a.height : b.y + b.height;
++    return x1 > x0 && y1 > y0 ? (x1 - x0) * (y1 - y0) : 0;
++}
++
++static void panel_stage(void)
++{
++    static const char *const tag[] = {"DRM","BSS","PLK","LED","AMB","SPK"};
++    int x[LAYER_COUNT], y[LAYER_COUNT];
++    PanelRect boxes[12] = {{215,114,14,13},{123,62,13,13},{10,62,29,15},
++                           {201,62,29,15},{10,184,29,15},{201,184,29,15}};
++    unsigned boxes_used = 6;
++    panel_header("STAGE MAP", layer_ink[selected_layer]);
++    cv_rect(8, 60, 224, 141, PANEL_ROW);
++    panel_box(8, 60, 224, 141, RGB(40,50,60));
++    cv_line(9, 130, 230, 130, RGB(85,85,85));
++    cv_line(120, 61, 120, 199, RGB(85,85,85));
++    panel_text(14, 73, 1, C_WHITE, ALIGN_LEFT, "HPF");
++    panel_text(226, 73, 1, C_WHITE, ALIGN_RIGHT, "HPF");
++    panel_text(14, 195, 1, C_WHITE, ALIGN_LEFT, "LPF");
++    panel_text(226, 195, 1, C_WHITE, ALIGN_RIGHT, "LPF");
++    panel_text(125, 73, 1, C_WHITE, ALIGN_LEFT, "Y");
++    panel_text(227, 125, 1, C_WHITE, ALIGN_RIGHT, "X");
++    for (unsigned i = 0; i < LAYER_COUNT; ++i) {
++        const unsigned layer = layer_order[i];
++        const uint8_t *mix = panel_mix[active_city][layer];
++        const int pan = (int)mix[MIX_PAN] - 64, neutral = 50 + 32 * (int)i;
++        x[layer] = neutral + pan * (pan < 0 ? neutral - 39 : 225 - neutral) / 64;
++        y[layer] = 130 - ((int)mix[MIX_FLT] - 64) * 105 / 127;
++    }
++    for (unsigned i = 0; i < LAYER_COUNT; ++i) {
++        const unsigned layer = (selected_layer + i + 1) % LAYER_COUNT;
++        const bool selected = layer == selected_layer, on = qa_ready_mask & (1u << layer);
++        const int radius = selected ? 7 : 5;
++        const int fill = on ? 2 * radius * panel_mix[active_city][layer][MIX_VOL] / 127 : 0;
++        panel_circle(x[layer], y[layer], radius, on ? layer_ink[layer] : PANEL_OFF, layer_ink[layer], fill);
++        if (selected) panel_circle(x[layer], y[layer], 11, layer_ink[layer], PANEL_BG, 0);
++    }
++    for (unsigned i = 0; i < LAYER_COUNT; ++i) {
++        const unsigned layer = (selected_layer + LAYER_COUNT - i) % LAYER_COUNT;
++        static const int8_t offsets[][2] = {{11,-7},{-37,-7},{11,7},{-37,7},{11,-21},{-37,-21},{-13,-31},{-13,23}};
++        PanelRect best = {0};
++        int best_score = 100000;
++        for (unsigned candidate = 0; candidate < sizeof offsets / sizeof offsets[0]; ++candidate) {
++            int left = x[layer] + offsets[candidate][0], top = y[layer] + offsets[candidate][1];
++            PanelRect r = {left < 11 ? 11 : left > 203 ? 203 : left,
++                           top < 62 ? 62 : top > 186 ? 186 : top, 26, 13};
++            int score = 0;
++            for (unsigned j = 0; j < boxes_used; ++j) score += panel_overlap(r, boxes[j]);
++            for (unsigned j = 0; j < LAYER_COUNT; ++j)
++                score += panel_overlap(r, (PanelRect){x[j]-6,y[j]-6,13,13});
++            if (score < best_score) { best_score = score; best = r; }
++        }
++        boxes[boxes_used++] = best;
++        cv_rect(best.x, best.y, best.width, best.height, PANEL_BG);
++        const bool selected = layer == selected_layer;
++        if (selected) panel_box(best.x, best.y, best.width, best.height, layer_ink[layer]);
++        panel_text(best.x + 4, best.y + 10, 1, selected ? layer_ink[layer] : C_WHITE, ALIGN_LEFT, tag[layer]);
++    }
++    panel_cards();
++}
++
++static void panel_variation_pixels(int x, int y, unsigned variation, uint16_t colour)
++{
++    for (unsigned i = 0; i < 8; ++i)
++        cv_rect(x + 6 * i, y, 4, 4, i == variation ? colour : PANEL_DIM);
++}
++
++static void panel_seq(void)
++{
++    const GrooveEdit *edit = &groove_edits[active_city];
++    const unsigned variation = layer_variation[active_city][seq_layer];
++    const unsigned origin = layer_origin[active_city][seq_layer];
++    const uint16_t colour = layer_ink[seq_layer];
++    panel_header(scene_names[edit->scene], scene_ink[edit->scene]);
++    panel_variation_pixels(8, 64, variation, colour);
++    char context[18] = "> V1";
++    context[3] = (char)('1' + variation);
++    if (seq_layer) {
++        memcpy(context + 4, " / ", 3);
++        memcpy(context + 7, layer_label[seq_layer], panel_text_length(layer_label[seq_layer]) + 1);
++    }
++    panel_text(62, 68, 1, C_WHITE, ALIGN_LEFT, context);
++    if (seq_layer) return;
++
++    panel_fill_banner(232, 68, ALIGN_RIGHT);
++    const unsigned slot = edit->scene + 4u * variation;
++    const GroovePattern *groove = &groove_patterns[origin][edit->scene][variation];
++    for (unsigned lane = 0; lane < 6; ++lane) {
++        const uint16_t mask = groove->hit[lane] ^ drum_edit_mask(active_city, lane, slot);
++        const int y = 78 + 23 * lane;
++        panel_row(y, 21, lane == drum_lane, colour);
++        panel_text(14, y + 12, 1, lane == drum_lane ? C_WHITE : PANEL_OFF, ALIGN_LEFT, drum_names[lane]);
++        for (unsigned step = 0; step < 16; ++step)
++            cv_rect(49 + 1115 * step / 100, y + 4, 8, 10, mask & (1u << step) ? PANEL_HIT : PANEL_DIM);
++        if (visible_playhead < 16u)
++            cv_rect(49 + 1115 * visible_playhead / 100, y + 15, 8, 2, colour);
++    }
++}
++
++static void panel_scl(void)
++{
++    static const unsigned scale_mask[2] = {
++        (1u<<0)|(1u<<2)|(1u<<3)|(1u<<5)|(1u<<7)|(1u<<8)|(1u<<10),
++        (1u<<0)|(1u<<2)|(1u<<4)|(1u<<5)|(1u<<7)|(1u<<9)|(1u<<11)
++    };
++    const unsigned root = city_tonic[active_city], major = city_major[active_city];
++    const uint16_t colour = city_ink[active_city];
++    panel_header("ROOT NOTE", colour);
++    char heading[20];
++    const unsigned prefix = panel_text_length(note_names[root]);
++    memcpy(heading, note_names[root], prefix);
++    memcpy(heading + prefix, major ? " NATURAL MAJOR" : " NATURAL MINOR", 15);
++    panel_text(120, 124, 2, colour, ALIGN_CENTER, heading);
++    for (unsigned i = 0; i < 12; ++i) {
++        const int x = 9 + 224 * i / 12;
++        const bool in_scale = scale_mask[major] & (1u << ((i + 12u - root) % 12u));
++        cv_rect(x, 140, 16, 26, i == root ? C_WHITE : in_scale ? colour : PANEL_DIM);
++        panel_text(x + 8, 181, 1, i == root ? C_WHITE : PANEL_OFF, ALIGN_CENTER, note_names[i]);
++    }
++}
++
++static void panel_dial(int x, int y, unsigned value, uint16_t colour)
++{
++    int px = 0, py = 0;
++    const unsigned end = (value * 32u + 63u) / 127u;
++    for (unsigned i = 0; i <= 32; ++i) {
++        const uint32_t angle = 0x60000000u + i * 0x06000000u;
++        const int dx = (lead_sin(angle + 0x40000000u) * 10) >> 15;
++        const int dy = (lead_sin(angle) * 10) >> 15;
++        if (i) cv_line(x + px, y + py, x + dx, y + dy,
++                       ((i <= 16u && i > end) || (i > 16u && i <= end)) ? colour : PANEL_DIM);
++        px = dx;
++        py = dy;
++        if (i == end) cv_rect(x + 2 * dx / 3, y + 2 * dy / 3, 2, 2, colour);
++    }
++}
++
++static void panel_edit(void)
++{
++    const unsigned layer = selected_layer;
++    const uint16_t colour = layer_ink[layer];
++    const GrooveEdit *edit = &groove_edits[active_city];
++    char title[18] = "EDIT > ";
++    memcpy(title + 7, layer_label[layer], panel_text_length(layer_label[layer]) + 1u);
++    panel_header(title, colour);
++    const unsigned count = panel_edit_count(layer);
++    if (!count) {
++        panel_row(60, 32, false, colour);
++        panel_text(14, 80, 1, PANEL_OFF, ALIGN_LEFT, "USE HOME FOR MIX CONTROLS");
++    }
++    for (unsigned i = 0; i < count; ++i) {
++        const int y = 60 + 37 * (int)i;
++        const bool selected = i == edit_row;
++        const char *label = layer == 3 ? "CUTOFF" : i == 0 ? "LEVEL" : "CUTOFF";
++        const char *mode = layer == 3 || i == 1 ? "LOW PASS" : "GAIN";
++        const unsigned value = layer == 3 ? lead_cutoff_position * 127u / LEAD_CUTOFF_LAST
++            : (layer == 0 ? edit->drum : i == 0 ? edit->bass : edit->tone) * 127u / 100u;
++        panel_row(y, 32, selected, colour);
++        panel_text(14, y + 20, 1, selected ? colour : C_WHITE, ALIGN_LEFT, label);
++        panel_text(190, y + 20, 1, selected ? colour : PANEL_OFF, ALIGN_RIGHT, mode);
++        panel_dial(216, y + 16, value, colour);
++    }
++    if (fill_active) panel_fill_banner(8, 220, ALIGN_LEFT);
++    panel_footer(220, true);
++}
++
++static void panel_global(void)
++{
++    static const char *const names[] = {"BPM RELEASE","SWING EVERYTHING","LEAD MODE","CLOCK",
++        "BPM","SCENE CHAIN","CITY","AUDIO MAX"};
++    static const char *const sources[] = {"INTERNAL","USB","TRS"};
++    const uint16_t colour = city_ink[active_city];
++    panel_header("GLOBAL STTNGS", colour);
++    char swing[6], bpm[4], max_us[15];
++    char *percent = panel_uint(swing, city_swing[active_city]);
++    *percent++ = '%';
++    *percent = 0;
++    panel_uint(bpm, groove_edits[active_city].bpm);
++    char *end = panel_uint(max_us, mdma_audio_max_ticks / FM1_TICKS_PER_US);
++    memcpy(end, " US", 4);
++    const char *const values[] = {tempo_manual[active_city] ? "MANUAL" : "AUTO", swing,
++        city_lead_alien[active_city] ? "ALIEN" : "HOLD", sources[qa_source],
++        bpm, qa_chain ? "ON" : "OFF", lcd_cities[active_city], max_us};
++    for (unsigned i = 0; i < GLO_COUNT; ++i) {
++        const int y = 46 + 23 * (int)i;
++        const bool selected = global_row == i;
++        panel_row(y, 20, selected, colour);
++        if (selected) panel_text(14, y + 14, 1, colour, ALIGN_LEFT, ">");
++        panel_text(24, y + 14, 1, selected ? colour : C_WHITE, ALIGN_LEFT, names[i]);
++        panel_text(226, y + 14, 1, selected ? colour : PANEL_OFF, ALIGN_RIGHT, values[i]);
++    }
++}
++
++static void panel_save(void)
++{
++    const uint16_t colour = city_ink[active_city];
++    panel_header("SAVE", colour);
++    if (save_confirm || qa_save_pending) {
++        panel_row(82, 104, true, colour);
++        panel_text(120, 124, 1, colour, ALIGN_CENTER, save_confirm ? "SAVE ALL CITIES?" : "SAVING");
++        panel_text(120, 144, 1, C_WHITE, ALIGN_CENTER, save_confirm ? "SAVE TO DEVICE" : "WAITING FOR SILENCE");
++        if (save_confirm) panel_text(120, 164, 1, C_WHITE, ALIGN_CENTER, "OCT+ CONFIRM * OCT- CANCEL");
++    } else {
++        panel_row(52, 20, false, colour);
++        panel_text(14, 66, 1, C_WHITE, ALIGN_LEFT, "SCOPE");
++        panel_text(226, 66, 1, colour, ALIGN_RIGHT, "ALL CITIES");
++        panel_row(77, 20, true, colour);
++        panel_text(14, 91, 1, colour, ALIGN_LEFT, "> SAVE TO DEVICE");
++    }
++    if (panel_notice) panel_text(120, 220, 1, colour, ALIGN_CENTER, panel_notice);
++}
++
++static void panel_set_notice(const char *text)
++{
++    panel_notice = text;
++    panel_notice_until = fm1_ms + 4000;
++    if (page == PAGE_SAVE) panel_dirty = true;
++}
++
++static unsigned panel_peak_width(unsigned layer)
++{
++    static const uint8_t gain[] = {5,25,16,80,30,12};
++    if (!(qa_ready_mask & (1u << layer))) return 0;
++    const unsigned level = panel_pcm_peaks[layer] * gain[layer] * 55u / 327680u;
++    return level > 55u ? 55u : level;
++}
++
++static unsigned panel_seq_playhead(void)
++{
++    const unsigned pos = panel_drum_position;
++    const unsigned slot = groove_edits[active_city].scene + 4u * layer_variation[active_city][0];
++    return (groove_enabled & GROOVE_DRUMS) && !seq_layer && pos >> 4 == slot ? pos & 15u : 16u;
++}
++
++static void panel_live(void)
++{
++    if (page == PAGE_HOME || page == PAGE_FX) {
++        for (unsigned i = 0; i < LAYER_COUNT; ++i) {
++            const unsigned layer = layer_order[i], width = panel_peak_width(layer);
++            if (width == visible_levels[layer]) continue;
++            visible_levels[layer] = width;
++            cv_begin(55, 6, PANEL_DIM);
++            cv_rect(0, 0, width, 6, layer_ink[layer]);
++            cv_blit(171, 68 + 22 * i);
++        }
++    } else if (page == PAGE_SEQ && !seq_layer) {
++        const unsigned head = panel_seq_playhead();
++        if (head == visible_playhead) return;
++        for (unsigned lane = 0; lane < 6; ++lane) {
++            const unsigned y = 93 + 23 * lane;
++            if (visible_playhead < 16u) {
++                cv_begin(8, 2, PANEL_ROW);
++                cv_blit(49 + 1115 * visible_playhead / 100, y);
++            }
++            if (head < 16u) {
++                cv_begin(8, 2, layer_ink[0]);
++                cv_blit(49 + 1115 * head / 100, y);
++            }
++        }
++        visible_playhead = head;
++    }
++}
++
++static void panel_render(void)
++{
++    static unsigned last_fill, last_bpm, last_master, last_transport, last_audio;
++    static uint32_t full_at;
++    static bool initial_draw = true, last_saving;
++    const unsigned fill = fill_active ? 2u : fill_queued ? 1u : 0u;
++    const unsigned bpm = qa_source && qa_running ? qa_external_bpm : 0;
++    const unsigned master = panel_master_level();
++    const unsigned transport = qa_running;
++    const bool live_due = fm1_ms - panel_live_at >= 40u;
++    if (panel_notice && !qa_save_pending && (int32_t)(fm1_ms - panel_notice_until) >= 0) {
++        panel_notice = 0;
++        if (page == PAGE_SAVE) panel_dirty = true;
++    }
++    if (fill != last_fill || bpm != last_bpm || transport != last_transport ||
++        (page == PAGE_SAVE && qa_save_pending != last_saving))
++        panel_dirty = true;
++    const unsigned audio = mdma_audio_max_ticks / FM1_TICKS_PER_US;
++    if (page == PAGE_GLO && global_row == GLO_AUDIO && audio != last_audio && fm1_ms - full_at >= 500u)
++        panel_dirty = true;
++    const bool refresh_header = live_due && master != last_master;
++    if (!panel_dirty && !refresh_header) {
++        if (live_due) {
++            panel_live_at = fm1_ms;
++            panel_live();
++        }
++        return;
++    }
++
++    const bool header_only = !panel_dirty;
++    if (!initial_draw && !header_only && fm1_ms - full_at < 25u) return;
++    initial_draw = false;
++    if (!header_only) {
++        full_at = fm1_ms;
++        last_audio = audio;
++    }
++    panel_dirty = false;
++    last_fill = fill;
++    last_bpm = bpm;
++    last_master = master;
++    last_transport = transport;
++    last_saving = qa_save_pending;
++    panel_live_at = fm1_ms;
++    if (!header_only) {
++        for (unsigned layer = 0; layer < LAYER_COUNT; ++layer)
++            visible_levels[layer] = panel_peak_width(layer);
++        visible_playhead = panel_seq_playhead();
++    }
++
++    const unsigned rows = header_only ? 38u : 240u;
++    cv_begin(240, rows, PANEL_BG);
++    panel_box(0, 0, 240, 240, city_ink[active_city]);
++    switch (page) {
++    case PAGE_HOME: case PAGE_FX: panel_home(); break;
++    case PAGE_STAGE: panel_stage(); break;
++    case PAGE_SEQ: panel_seq(); break;
++    case PAGE_EDIT: panel_edit(); break;
++    case PAGE_GLO: panel_global(); break;
++    case PAGE_SAVE: panel_save(); break;
++    case PAGE_SCL: panel_scl(); break;
++    }
++    for (unsigned row = 0; row < rows; row += 40u)
++        lcd_blit(0, row, 240, rows - row < 40u ? rows - row : 40u, cv_px + 240u * row);
++}
+diff --git a/firmware/src/mdma_lcd_font.h b/firmware/src/mdma_lcd_font.h
+new file mode 100644
+index 0000000..7db7f52
+--- /dev/null
++++ b/firmware/src/mdma_lcd_font.h
+@@ -0,0 +1,68 @@
++/* SPDX-License-Identifier: GPL-3.0-only */
++/* LCD_GLYPHS from the MDMA stable-v0.5 display. @ encodes accented U. */
++static const uint8_t lcd_glyphs[95][5] = {
++    [' ' - 32] = {0x00, 0x00, 0x00, 0x00, 0x00},
++    ['0' - 32] = {0x3E, 0x51, 0x49, 0x45, 0x3E},
++    ['1' - 32] = {0x00, 0x42, 0x7F, 0x40, 0x00},
++    ['2' - 32] = {0x42, 0x61, 0x51, 0x49, 0x46},
++    ['3' - 32] = {0x21, 0x41, 0x45, 0x4B, 0x31},
++    ['4' - 32] = {0x18, 0x14, 0x12, 0x7F, 0x10},
++    ['5' - 32] = {0x27, 0x45, 0x45, 0x45, 0x39},
++    ['6' - 32] = {0x3C, 0x4A, 0x49, 0x49, 0x30},
++    ['7' - 32] = {0x01, 0x71, 0x09, 0x05, 0x03},
++    ['8' - 32] = {0x36, 0x49, 0x49, 0x49, 0x36},
++    ['9' - 32] = {0x06, 0x49, 0x49, 0x29, 0x1E},
++    ['A' - 32] = {0x7E, 0x11, 0x11, 0x11, 0x7E},
++    ['B' - 32] = {0x7F, 0x49, 0x49, 0x49, 0x36},
++    ['C' - 32] = {0x3E, 0x41, 0x41, 0x41, 0x22},
++    ['D' - 32] = {0x7F, 0x41, 0x41, 0x22, 0x1C},
++    ['E' - 32] = {0x7F, 0x49, 0x49, 0x49, 0x41},
++    ['F' - 32] = {0x7F, 0x09, 0x09, 0x09, 0x01},
++    ['G' - 32] = {0x3E, 0x41, 0x49, 0x49, 0x7A},
++    ['H' - 32] = {0x7F, 0x08, 0x08, 0x08, 0x7F},
++    ['I' - 32] = {0x00, 0x41, 0x7F, 0x41, 0x00},
++    ['J' - 32] = {0x20, 0x40, 0x41, 0x3F, 0x01},
++    ['K' - 32] = {0x7F, 0x08, 0x14, 0x22, 0x41},
++    ['L' - 32] = {0x7F, 0x40, 0x40, 0x40, 0x40},
++    ['M' - 32] = {0x7F, 0x02, 0x0C, 0x02, 0x7F},
++    ['N' - 32] = {0x7F, 0x04, 0x08, 0x10, 0x7F},
++    ['O' - 32] = {0x3E, 0x41, 0x41, 0x41, 0x3E},
++    ['P' - 32] = {0x7F, 0x09, 0x09, 0x09, 0x06},
++    ['Q' - 32] = {0x3E, 0x41, 0x51, 0x21, 0x5E},
++    ['R' - 32] = {0x7F, 0x09, 0x19, 0x29, 0x46},
++    ['S' - 32] = {0x46, 0x49, 0x49, 0x49, 0x31},
++    ['T' - 32] = {0x01, 0x01, 0x7F, 0x01, 0x01},
++    ['U' - 32] = {0x3F, 0x40, 0x40, 0x40, 0x3F},
++    ['V' - 32] = {0x1F, 0x20, 0x40, 0x20, 0x1F},
++    ['W' - 32] = {0x3F, 0x40, 0x38, 0x40, 0x3F},
++    ['X' - 32] = {0x63, 0x14, 0x08, 0x14, 0x63},
++    ['Y' - 32] = {0x07, 0x08, 0x70, 0x08, 0x07},
++    ['Z' - 32] = {0x61, 0x51, 0x49, 0x45, 0x43},
++    ['-' - 32] = {0x08, 0x08, 0x08, 0x08, 0x08},
++    ['.' - 32] = {0x00, 0x60, 0x60, 0x00, 0x00},
++    ['>' - 32] = {0x00, 0x41, 0x22, 0x14, 0x08},
++    [':' - 32] = {0x00, 0x36, 0x36, 0x00, 0x00},
++    ['+' - 32] = {0x08, 0x08, 0x3E, 0x08, 0x08},
++    ['^' - 32] = {0x0E, 0x1F, 0x7B, 0x1F, 0x0E},
++    ['?' - 32] = {0x02, 0x01, 0x51, 0x09, 0x06},
++    ['/' - 32] = {0x60, 0x40, 0x3C, 0x03, 0x01},
++    ['%' - 32] = {0x63, 0x63, 0x18, 0x63, 0x63},
++    ['#' - 32] = {0x14, 0x7F, 0x14, 0x7F, 0x14},
++    ['@' - 32] = {0x3F, 0x40, 0x40, 0x40, 0x3F},
++    ['*' - 32] = {0x00, 0x08, 0x08, 0x08, 0x00},
++};
++
++/* MASTER voltage gain, expressed in tenths of a decibel. */
++static const int16_t panel_master_db[129] = {
++    0, -421, -361, -326, -301, -282, -266, -252, -241, -231, -221, -213,
++    -206, -199, -192, -186, -181, -175, -170, -166, -161, -157, -153, -149,
++    -145, -142, -138, -135, -132, -129, -126, -123, -120, -118, -115, -113,
++    -110, -108, -105, -103, -101, -99, -97, -95, -93, -91, -89, -87,
++    -85, -83, -82, -80, -78, -77, -75, -73, -72, -70, -69, -67,
++    -66, -64, -63, -62, -60, -59, -58, -56, -55, -54, -52, -51,
++    -50, -49, -48, -46, -45, -44, -43, -42, -41, -40, -39, -38,
++    -37, -36, -35, -34, -33, -32, -31, -30, -29, -28, -27, -26,
++    -25, -24, -23, -22, -21, -21, -20, -19, -18, -17, -16, -16,
++    -15, -14, -13, -12, -12, -11, -10, -9, -9, -8, -7, -6,
++    -6, -5, -4, -3, -3, -2, -1, -1, 0,
 +};
 diff --git a/firmware/src/mdma_lead.c b/firmware/src/mdma_lead.c
 new file mode 100644
@@ -1973,23 +2642,23 @@ index 0000000..e23a770
 +};
 diff --git a/firmware/src/mdma_panel.c b/firmware/src/mdma_panel.c
 new file mode 100644
-index 0000000..a41332a
+index 0000000..32a25e3
 --- /dev/null
 +++ b/firmware/src/mdma_panel.c
-@@ -0,0 +1,396 @@
+@@ -0,0 +1,354 @@
 +/* SPDX-License-Identifier: GPL-3.0-only */
 +enum { PAGE_HOME, PAGE_FX, PAGE_EDIT, PAGE_SEQ, PAGE_GLO, PAGE_SAVE, PAGE_SCL, PAGE_STAGE };
-+static unsigned page, selected_layer;
++static unsigned page, selected_layer = 1;
 +static const char *const layer_label[6]={"DRUMS","BASS","PLUCK","LEAD","AMB","SPARKS"};
 +
-+static const char *const page_label[] = {"HOME", "FX", "EDIT", "SEQ", "GLO", "SAVE", "SCL", "STAGE MAP"};
 +static const char *const mix_label[] = {"VOL", "PAN", "FLT", "RES"};
 +static const char *const fx_label[] = {"REV", "DLY", "PHS", "SAT"};
 +static bool panel_dirty = true, save_confirm;
-+static unsigned global_row, seq_layer, drum_lane;
++enum { GLO_RELEASE, GLO_SWING, GLO_LEAD, GLO_CLOCK, GLO_BPM, GLO_CHAIN, GLO_CITY, GLO_AUDIO, GLO_COUNT };
++static unsigned global_row, seq_layer, drum_lane, edit_row;
 +static bool edit_held, edit_used;
 +static uint32_t edit_at, seq_at, observed_city_switch;
-+static bool seq_held, seq_fill_gesture, seq_fired, drawn_fill;
++static bool seq_held, seq_fill_gesture, seq_fired;
 +static int tempo_direction, tempo_start;
 +static uint32_t tempo_at;
 +
@@ -2034,115 +2703,29 @@ index 0000000..a41332a
 +    panel_dirty = true;
 +}
 +
-+static void panel_render(void)
++static unsigned panel_edit_count(unsigned layer)
 +{
-+    if (drawn_fill != fill_active) {
-+        drawn_fill = fill_active;
-+        if (page == PAGE_HOME) panel_dirty = true;
-+    }
-+    if (!panel_dirty) return;
-+    panel_dirty = false;
-+    groove_show_settings();
++    return layer == 1 ? 2u : (layer == 0 || layer == 3) ? 1u : 0u;
++}
 +
-+    cv_begin(240, 56, C_BLACK);
-+    cv_text(4, 2, &FONT_S, page_label[page], C_ACC);
-+    if (page <= PAGE_SEQ) {
-+        cv_text(70, 2, &FONT_S, page == PAGE_SEQ ? layer_label[seq_layer] : layer_label[selected_layer], C_WHITE);
-+        if (page != PAGE_SEQ && (qa_ready_mask & (1u << selected_layer)))
-+            cv_rect(222, 8, 8, 8, C_ACC);
-+    }
-+    if (page == PAGE_SCL) {
-+        static const char *const notes[] = {"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};
-+        cv_text(4, 22, &FONT_S, "TOM", C_WHITE);
-+        cv_text(52, 22, &FONT_S, notes[city_tonic[active_city]], C_ACC);
-+        cv_text(96, 22, &FONT_S, city_major[active_city] ? "MAJOR" : "MINOR", C_ACC);
-+    } else if (page == PAGE_STAGE) {
-+        static const char *const tag[] = {"DRM","BSS","PLK","LED","AMB","SPK"};
-+        static const uint8_t order[] = {0,1,3,4,2,5};
-+        cv_line(4, 36, 235, 36, C_OFF);
-+        cv_line(119, 17, 119, 55, C_OFF);
-+        cv_text(3, 16, &FONT_S, "HPF", C_OFF);
-+        cv_text(209, 16, &FONT_S, "HPF", C_OFF);
-+        cv_text(3, 41, &FONT_S, "LPF", C_OFF);
-+        cv_text(209, 41, &FONT_S, "LPF", C_OFF);
-+        cv_text(122, 15, &FONT_S, "Y", C_WHITE);
-+        cv_text(228, 29, &FONT_S, "X", C_WHITE);
-+        for (unsigned layer = 0; layer < LAYER_COUNT; ++layer) {
-+            const uint8_t *mix = panel_mix[active_city][layer];
-+            const int neutral = 44 + order[layer] * 28;
-+            const int pan = (int)mix[MIX_PAN] - 64;
-+            const int x = neutral + pan * (pan < 0 ? neutral - 33 : 207 - neutral) / 64;
-+            const int y = 36 - ((int)mix[MIX_FLT] - 64) * 14 / 64;
-+            const bool on = (qa_ready_mask & (1u << layer)) != 0;
-+            const uint16_t colour = layer == selected_layer ? C_ACC : on ? C_WHITE : C_OFF;
-+            cv_text(x - 10, y - 11, &FONT_S, tag[layer], colour);
-+            const int width = on ? mix[MIX_VOL] * 17 / 127 : 0;
-+            if (width) cv_rect(x - 8, y + 6, width, 2, colour);
-+        }
-+    } else if (page == PAGE_HOME || page == PAGE_FX) {
-+        const uint8_t *values = page == PAGE_HOME
-+            ? panel_mix[active_city][selected_layer] : panel_fx[active_city][selected_layer];
-+        const char *const *labels = page == PAGE_HOME ? mix_label : fx_label;
-+        for (unsigned knob = 0; knob < 4; ++knob) {
-+            const int x = 4 + 60 * (int)knob;
-+            const int end = x + (50 * values[knob] + 63) / 127;
-+            const bool centered = page == PAGE_HOME && knob != MIX_VOL;
-+            const int origin = centered ? x + 25 : x;
-+            cv_text(x, 20, &FONT_S, labels[knob], C_WHITE);
-+            cv_rect(x, 44, 51, 3, C_OFF);
-+            cv_rect(end < origin ? end : origin, 44,
-+                    end < origin ? origin - end + 1 : end - origin + 1, 3, C_ACC);
-+            if (centered) cv_line(origin, 40, origin, 49, C_WHITE);
-+        }
-+    } else if (page == PAGE_SEQ) {
-+        const GrooveEdit *edit = &groove_edits[active_city];
-+        const unsigned variation = layer_variation[active_city][seq_layer];
-+        const unsigned origin = layer_origin[active_city][seq_layer];
-+        const unsigned slot = edit->scene + 4u * variation;
-+        const GroovePattern *groove = &groove_patterns[origin][edit->scene][variation];
-+        const MelodyPattern *melody = &melody_patterns[origin][edit->scene][variation];
-+        char info[] = "V1";
-+        info[1] = (char)('1' + variation);
-+        static const char *const lanes[] = {"KICK", "HAT", "OPEN", "CLAP", "PERC", "NOISE"};
-+        if (!seq_layer) cv_text(4, 19, &FONT_S, lanes[drum_lane], C_WHITE);
-+        cv_text(70, 19, &FONT_S, info, C_ACC);
-+        for (unsigned step = 0; step < 16; ++step) {
-+            bool hit;
-+            switch (seq_layer) {
-+            case 0: hit = ((groove->hit[drum_lane] ^ drum_edit_mask(active_city, drum_lane, slot)) >> step) & 1u; break;
-+            case 1: hit = groove->note[step] >= 0; break;
-+            case 2: hit = melody->pluck[step] >= 0; break;
-+            case 3: hit = melody->lead[step] >= 0; break;
-+            case 4: hit = melody->amb_bright[step] > 0; break;
-+            default: hit = melody->sparks_density[step] > 0; break;
-+            }
-+            cv_rect(2 + 15 * step, 39, 12, 11, hit ? C_ACC : C_OFF);
-+        }
-+    } else if (page == PAGE_SAVE) {
-+        cv_text(4, 22, &FONT_S, "SAVE GROOVE", C_WHITE);
-+        cv_text(4, 39, &FONT_S, save_confirm ? "CONFIRM OCT+ / CANCEL OCT-" : "OCT+ TO CONFIRM", C_ACC);
-+    } else if (page == PAGE_GLO) {
-+        static const char *const labels[] = {"CITY", "BPM", "CLOCK", "CHAIN", "SWING", "BPM RELEASE", "LEAD MODE"};
-+        static const char *const sources[] = {"INTERNAL", "USB", "TRS"};
-+        cv_text(4, 23, &FONT_S, labels[global_row], C_WHITE);
-+        if (global_row == 2) cv_text(64, 23, &FONT_S, sources[qa_source], C_ACC);
-+        if (global_row == 3) cv_text(64, 23, &FONT_S, qa_chain ? "ON" : "OFF", C_ACC);
-+        if (global_row == 5)
-+            cv_text(112, 23, &FONT_S, tempo_manual[active_city] ? "MANUAL" : "AUTO", C_ACC);
-+        if (global_row == 6)
-+            cv_text(96, 23, &FONT_S, city_lead_alien[active_city] ? "ALIEN" : "HOLD", C_ACC);
-+        if (global_row == 4) {
-+            const unsigned swing = city_swing[active_city];
-+            char value[] = {(char)('0' + swing / 10), (char)('0' + swing % 10), '%', 0};
-+            cv_text(64, 23, &FONT_S, value, C_ACC);
-+        }
-+    } else {
-+        cv_text(4, 20, &FONT_S, "LEAD DRUM BASS TONE", C_WHITE);
-+        const unsigned origin = layer_origin[active_city][selected_layer];
-+        if (origin != active_city) cv_text(4, 39, &FONT_S, city_label[origin], C_ACC);
-+    }
-+    if (page == PAGE_HOME && drawn_fill) cv_text(140, 2, &FONT_S, "FILL IN", C_ACC);
-+    cv_blit(0, 136);
++#include "mdma_lcd.c"
++
++static unsigned panel_cycle(unsigned current, int32_t turn, unsigned count)
++{
++    return (unsigned)((int32_t)current + turn % (int32_t)count + (int32_t)count) % count;
++}
++
++static unsigned panel_layer_turn(unsigned layer, int32_t turn)
++{
++    unsigned i = 0;
++    while (layer_order[i] != layer) ++i;
++    return layer_order[panel_cycle(i, turn, LAYER_COUNT)];
++}
++
++static void panel_select_layer(unsigned layer)
++{
++    if (layer != selected_layer) edit_row = 0;
++    selected_layer = layer;
 +}
 +
 +/* The reference maps the eleven raised keys, left to right, to four
@@ -2150,16 +2733,15 @@ index 0000000..a41332a
 +static int panel_key(unsigned key)
 +{
 +    static const uint8_t raised[] = {1, 3, 5, 8, 10, 13, 15, 17, 20, 22, 25};
-+    static const uint8_t layers[] = {0, 1, 4, 2, 3, 5};
 +    for (unsigned i = 0; i < sizeof raised; ++i) {
 +        if (raised[i] != key) continue;
 +        if (i < 4) {
 +            groove_edits[active_city].scene = (uint8_t)i;
 +            groove_publish();
 +        } else if (i < 10) {
-+            if (page != PAGE_SEQ) selected_layer = layers[i - 4];
++            if (page != PAGE_SEQ) panel_select_layer(layer_order[i - 4]);
 +            if (page != PAGE_EDIT)
-+                panel_set_layers(qa_ready_mask ^ (1u << layers[i - 4]));
++                panel_set_layers(qa_ready_mask ^ (1u << layer_order[i - 4]));
 +        } else {
 +            panel_all_layers();
 +        }
@@ -2171,7 +2753,9 @@ index 0000000..a41332a
 +
 +static void panel_clock(int direction)
 +{
-+    qa_source = (qa_source + (direction < 0 ? 2u : 1u)) % 3u;
++    const unsigned next = panel_cycle(qa_source, direction, 3);
++    if (next == qa_source) return;
++    qa_source = next;
 +    qa_running=groove_enabled=qa_ticks=0;
 +    qa_clock_count=qa_beat_count=0;
 +    qa_clock_seen=false;
@@ -2179,37 +2763,81 @@ index 0000000..a41332a
 +    panel_set_layers(qa_ready_mask);
 +}
 +
++static void panel_adjust_global(int32_t direction)
++{
++    GrooveEdit *edit = &groove_edits[active_city];
++    switch (global_row) {
++    case GLO_RELEASE: tempo_manual[active_city] ^= (unsigned)direction & 1u; break;
++    case GLO_SWING:
++        city_swing[active_city] = groove_adjust(city_swing[active_city], direction, 0, 40);
++        groove_publish();
++        break;
++    case GLO_LEAD: city_lead_alien[active_city] ^= (unsigned)direction & 1u; break;
++    case GLO_CLOCK: panel_clock(direction); break;
++    case GLO_BPM:
++        edit->bpm = groove_adjust(edit->bpm, direction, 60, 240);
++        groove_publish();
++        break;
++    case GLO_CHAIN: qa_chain ^= (unsigned)direction & 1u; break;
++    case GLO_CITY: city_select(city_turn(active_city, direction), true); break;
++    case GLO_AUDIO: return;
++    }
++    panel_show();
++}
++
 +static void panel_scan_knobs(void)
 +{
 +    const int32_t select=fm1_enc_take(ENC_SELECT);
-+    if (select && page == PAGE_GLO) {
-+        global_row = (unsigned)((int32_t)global_row + select % 7 + 7) % 7u;
-+        panel_show();
-+    } else if (select && page == PAGE_SCL) {
-+        city_tonic[active_city] = (uint8_t)((city_tonic[active_city] + select % 12 + 12) % 12);
-+        groove_publish();
-+        panel_show();
-+    } else if (select && page != PAGE_SAVE) {
-+        unsigned *layer = page == PAGE_SEQ ? &seq_layer : &selected_layer;
-+        *layer = (unsigned)((int32_t)*layer + select % 6 + 6) % 6u;
++    if (select && page != PAGE_SAVE) {
++        switch (page) {
++        case PAGE_GLO:
++            global_row = panel_cycle(global_row, select, GLO_COUNT);
++            break;
++        case PAGE_SCL:
++            city_tonic[active_city] = (uint8_t)panel_cycle(city_tonic[active_city], select, 12);
++            groove_publish();
++            break;
++        case PAGE_EDIT:
++            if (edit_held) {
++                edit_used = true;
++                panel_select_layer(panel_layer_turn(selected_layer, select));
++            } else {
++                const unsigned count = panel_edit_count(selected_layer);
++                if (count) edit_row = panel_cycle(edit_row, select, count);
++            }
++            break;
++        case PAGE_SEQ:
++            if (seq_layer == 0) drum_lane = panel_cycle(drum_lane, select, 6);
++            else seq_layer = panel_layer_turn(seq_layer, select);
++            break;
++        default:
++            panel_select_layer(panel_layer_turn(selected_layer, select));
++            break;
++        }
 +        panel_show();
 +    }
 +    GrooveEdit *edit=&groove_edits[active_city];
 +    const int32_t variation = fm1_enc_take(ENC_ALGORITHM);
 +    const int32_t preset = fm1_enc_take(ENC_PRESETS);
++    if (page == PAGE_GLO && variation) panel_adjust_global(variation);
++    if ((page == PAGE_GLO || page == PAGE_SAVE) && preset) {
++        city_select(city_turn(active_city, preset), false);
++        save_confirm = false;
++        panel_show();
++    }
 +    if (page != PAGE_GLO && page != PAGE_SAVE) {
 +        if (variation && page == PAGE_SCL) {
 +            city_major[active_city] ^= (unsigned)variation & 1u;
 +            groove_publish();
 +            panel_show();
-+        } else if (variation) {
++        } else if (variation && page != PAGE_EDIT) {
 +            const unsigned layer = page == PAGE_SEQ ? seq_layer : selected_layer;
 +            uint8_t *value = &layer_variation[active_city][layer];
 +            *value = (uint8_t)((*value + (uint32_t)variation) & 7u);
 +            groove_publish();
 +            panel_show();
 +        }
-+        if (preset && edit_held && page == PAGE_HOME) {
++        if (preset && edit_held && (page == PAGE_HOME || page == PAGE_STAGE || page == PAGE_FX)) {
 +            edit_used = true;
 +            if (fm1_ms - edit_at >= 120u) {
 +                uint8_t *origin = &layer_origin[active_city][selected_layer];
@@ -2230,21 +2858,37 @@ index 0000000..a41332a
 +    for(unsigned knob=0;knob<4;knob++){
 +        const int32_t motion=fm1_enc_take(ENC_KNOB1+knob);
 +        if(!motion) continue;
-+        if (page == PAGE_SEQ && seq_layer == 0 && knob == 0) {
-+            drum_lane = (unsigned)((int32_t)drum_lane + motion % 6 + 6) % 6u;
++        if (page == PAGE_SEQ) {
++            if (knob == 3) seq_layer = panel_layer_turn(seq_layer, motion);
++            else if (seq_layer == 0 && knob == 0) drum_lane = panel_cycle(drum_lane, motion, 6);
++            else continue;
 +            panel_show();
-+        } else if(page==PAGE_HOME||page==PAGE_STAGE||page==PAGE_FX){
-+            uint8_t *value=page==PAGE_FX?panel_fx[active_city][selected_layer]:panel_mix[active_city][selected_layer];
-+            value[knob]=groove_adjust(value[knob],motion,0,127);
++        } else if (page == PAGE_HOME || page == PAGE_STAGE || page == PAGE_FX) {
++            uint8_t *value = page == PAGE_FX ? panel_fx[active_city][selected_layer]
++                                             : panel_mix[active_city][selected_layer];
++            value[knob] = groove_adjust(value[knob], motion, 0, 127);
 +            panel_publish();
 +            panel_show();
-+        } else if(page==PAGE_EDIT){
-+            switch(knob){
-+            case 0: lead_cutoff_turn(motion); break;
-+            case 1: edit->drum=groove_adjust(edit->drum,motion,0,100);break;
-+            case 2: edit->bass=groove_adjust(edit->bass,motion,0,100);break;
-+            case 3: edit->tone=groove_adjust(edit->tone,motion,0,100);groove_tone=edit->tone;break;
++        } else if (page == PAGE_EDIT && knob < panel_edit_count(selected_layer)) {
++            edit_row = knob;
++            if (selected_layer == 3) lead_cutoff_turn(motion);
++            else if (selected_layer == 0) edit->drum = groove_adjust(edit->drum, motion, 0, 100);
++            else if (knob == 0) edit->bass = groove_adjust(edit->bass, motion, 0, 100);
++            else {
++                edit->tone = groove_adjust(edit->tone, motion, 0, 100);
++                groove_tone = edit->tone;
 +            }
++            groove_publish();
++            panel_show();
++        } else if (page == PAGE_GLO && knob < 2) {
++            global_row = knob == 0 ? GLO_RELEASE : GLO_SWING;
++            panel_adjust_global(motion);
++        } else if (page == PAGE_GLO && knob == 3) {
++            global_row = GLO_LEAD;
++            panel_adjust_global(motion);
++        } else if (page == PAGE_SCL && knob < 2) {
++            if (knob == 0) city_tonic[active_city] = (uint8_t)panel_cycle(city_tonic[active_city], motion, 12);
++            else city_major[active_city] ^= (unsigned)motion & 1u;
 +            groove_publish();
 +            panel_show();
 +        }
@@ -2254,7 +2898,7 @@ index 0000000..a41332a
 +static bool panel_buttons(uint32_t b, uint32_t released)
 +{
 +    if (b & (1u << BTN_SAVE)) {
-+        page = PAGE_SAVE;
++        page = page == PAGE_SAVE ? PAGE_HOME : PAGE_SAVE;
 +        save_confirm = false;
 +        tempo_direction = 0;
 +        panel_show();
@@ -2271,7 +2915,8 @@ index 0000000..a41332a
 +        edit_at = fm1_ms;
 +    }
 +    if (released & (1u << BTN_EDIT)) {
-+        if (edit_held && !edit_used && (page != PAGE_HOME || fm1_ms - edit_at < 120u)) {
++        const bool mixer = page == PAGE_HOME || page == PAGE_STAGE || page == PAGE_FX;
++        if (edit_held && !edit_used && (!mixer || fm1_ms - edit_at < 120u)) {
 +            page = page == PAGE_EDIT ? PAGE_HOME : PAGE_EDIT;
 +            panel_show();
 +        }
@@ -2295,12 +2940,11 @@ index 0000000..a41332a
 +        }
 +        seq_held = false;
 +    }
-+    if(b & (1u<<BTN_GLO)) {page=PAGE_GLO;panel_show();}
++    if (b & (1u << BTN_GLO)) { page = page == PAGE_GLO ? PAGE_HOME : PAGE_GLO; panel_show(); }
 +    const int direction = b & (1u << BTN_OCT_UP) ? 1 :
 +                          b & (1u << BTN_OCT_DOWN) ? -1 : 0;
 +    if (page == PAGE_SAVE) {
 +        if (direction < 0) {
-+            if (!save_confirm) page = PAGE_HOME;
 +            save_confirm = false;
 +        } else if (direction > 0) {
 +            if (save_confirm) {
@@ -2353,32 +2997,15 @@ index 0000000..a41332a
 +    }
 +    tempo_direction = 0;
 +    if (!direction) return false;
-+    if (global_row == 1) {
-+        edit->bpm = groove_adjust(edit->bpm, direction, 60, 240);
-+        groove_publish();
-+    } else if (global_row == 0) {
-+        city_select(city_turn(active_city, direction), true);
-+    } else if (global_row == 2) {
-+        panel_clock(direction);
-+    } else if (global_row == 3) {
-+        qa_chain ^= 1u;
-+    } else if (global_row == 4) {
-+        city_swing[active_city] = groove_adjust(city_swing[active_city], direction, 0, 40);
-+        groove_publish();
-+    } else if (global_row == 5) {
-+        tempo_manual[active_city] ^= 1u;
-+    } else {
-+        city_lead_alien[active_city] ^= 1u;
-+    }
-+    panel_show();
++    panel_adjust_global(direction);
 +    return false;
 +}
 diff --git a/firmware/src/mdma_qa.c b/firmware/src/mdma_qa.c
 new file mode 100644
-index 0000000..480b29d
+index 0000000..eb2ebab
 --- /dev/null
 +++ b/firmware/src/mdma_qa.c
-@@ -0,0 +1,145 @@
+@@ -0,0 +1,160 @@
 +/* SPDX-License-Identifier: GPL-3.0-only */
 +/* Lab controls, clock handoff and bounded stereo echo. */
 +static volatile unsigned qa_source, qa_running, qa_chain;
@@ -2459,6 +3086,13 @@ index 0000000..480b29d
 +    m->prev=m->low;
 +    return output;
 +}
++#ifdef MDMA_PANEL_LCD
++static volatile bool panel_meter_active;
++static unsigned meter_peaks[LAYER_COUNT];
++static volatile unsigned panel_pcm_peaks[LAYER_COUNT];
++static volatile unsigned panel_drum_position = ~0u;
++#endif
++
 +static void qa_effects(LayerEffects *fx, uint32_t effects, int32_t *left, int32_t *right);
 +
 +static void qa_layer(unsigned layer, int32_t l, int32_t r, int32_t *left, int32_t *right)
@@ -2474,6 +3108,14 @@ index 0000000..480b29d
 +    const uint32_t effects = fx_controls[layer];
 +    if (effects && ((groove_enabled & (1u << layer)) || l || r))
 +        qa_effects(&layer_effects[layer], effects, &l, &r);
++#ifdef MDMA_PANEL_LCD
++    if (panel_meter_active) {
++        const unsigned magnitude_l = (unsigned)(l < 0 ? -l : l);
++        const unsigned magnitude_r = (unsigned)(r < 0 ? -r : r);
++        const unsigned peak = magnitude_l > magnitude_r ? magnitude_l : magnitude_r;
++        if (peak > meter_peaks[layer]) meter_peaks[layer] = peak;
++    }
++#endif
 +    *left += l;
 +    *right += r;
 +}
@@ -2526,10 +3168,10 @@ index 0000000..480b29d
 +}
 diff --git a/firmware/src/mdma_save_probe.c b/firmware/src/mdma_save_probe.c
 new file mode 100644
-index 0000000..b59cad2
+index 0000000..5c712ae
 --- /dev/null
 +++ b/firmware/src/mdma_save_probe.c
-@@ -0,0 +1,245 @@
+@@ -0,0 +1,255 @@
 +/* SPDX-License-Identifier: GPL-3.0-only */
 +#define MDMA_STORAGE_UNITY
 +#include "storage.c"
@@ -2690,12 +3332,21 @@ index 0000000..b59cad2
 +    return groove_slot((addr-GROOVE_BASE)/GROOVE_SECTOR,p,&seq,0)!=FLASH_UNKNOWN &&
 +           fl_erase4k(addr,&ticks)==0;
 +}
++#ifdef MDMA_PANEL_LCD
++static void panel_set_notice(const char *text);
++static void groove_show(const char *text)
++{
++    panel_set_notice(text);
++}
++#else
 +static void groove_show(const char *text)
 +{
 +    draw_text_box(0,196,240,&FONT_S,text,C_OFF,1);
 +}
++#endif
 +static void groove_show_settings(void)
 +{
++#ifndef MDMA_PANEL_LCD
 +    const GrooveEdit *e=&groove_edits[active_city];
 +    char line[]="BUZIOS S1 V1 BPM 132";
 +    const char *city = city_label[active_city];
@@ -2708,6 +3359,7 @@ index 0000000..b59cad2
 +    line[18]=(char)('0'+e->bpm/10%10);
 +    line[19]=(char)('0'+e->bpm%10);
 +    groove_show(line);
++#endif
 +}
 +static void save_probe_boot(void)
 +{
@@ -3030,7 +3682,7 @@ index 0000000..3731472
 +
 +#endif
 diff --git a/tools/build.py b/tools/build.py
-index d143605..8246482 100644
+index d143605..80d3b80 100644
 --- a/tools/build.py
 +++ b/tools/build.py
 @@ -55,11 +55,11 @@ SDK_SHA256 = {
@@ -3043,7 +3695,7 @@ index d143605..8246482 100644
  MODELS = {"pro": "SMK-37 Pro", "elite": "SMK-37 Elite", "mke": "MKE-P37"}   # smk37: one keyboard, three names
  DATA_FAMILY = "DINGHY"              # the SMK store's owner tag (store.h): 1..7 of A-Z 0-9. Your fork: your own
 -SCREEN_NAME = "DINGHY"              # the update loader's screen (FM-1, ldr_screen.c): the name and its colour (RGB565)
-+SCREEN_NAME = "MDMA PROBE"              # the update loader's screen (FM-1, ldr_screen.c): the name and its colour (RGB565)
++SCREEN_NAME = "MDMA"              # the update loader's screen (FM-1, ldr_screen.c): the name and its colour (RGB565)
  SCREEN_COLOUR = 0xB47F              # lilac, #B48CFF
  PRODUCT = "FM-1_990"                # Dinghy: 99N (OUR_LOADER in the installer wants FM-1_9NN). Your fork: pick your own
  VERSION = None                      # APP_VER for release builds
@@ -3052,7 +3704,7 @@ index d143605..8246482 100644
          ld.write_text(txt.replace("LENGTH = 0x8DFBC", f"LENGTH = {APP_SLOT:#X}".replace("0X", "0x")))
      tc("pi32v2/bin/ld", "--gc-sections", "-e", "_start", "-T", ld, OUT / "crt0.o", OUT / "fm1_vec.o",
 -       OUT / "fm1_isr.o", OUT / "dinghy.o", "-o", elf)
-+       OUT / "fm1_isr.o", OUT / "dinghy.o", "-Map", OUT / "mdma-probe.map", "-o", elf)
++       OUT / "fm1_isr.o", OUT / "dinghy.o", "-Map", OUT / "mdma.map", "-o", elf)
      for sect in ("text.bin", "data.bin", "ramtext.bin"):
          (OUT / sect).unlink(missing_ok=True)
      *_, syms, dis, rt = tc_all(("common/bin/objcopy", "-O", "binary", "-j", ".text", elf, OUT / "text.bin"),
@@ -3061,7 +3713,7 @@ index d143605..8246482 100644
          suffix += "-" + model
      PRODUCT = BOARD_PREFIX[BOARD] + "0"
 -    name = f"dinghy{suffix}.fwsc"
-+    name = f"mdma-probe{suffix}.fwsc"
++    name = f"mdma{suffix}.fwsc"
      if a.release:                   # one digit each: the identity has room for two (X.Y; a .Z only in the text)
          m = re.fullmatch(r"(\d)\.(\d)(\.\d)?(-[A-Za-z0-9]+)?", a.release)
          if not m:
@@ -3069,7 +3721,7 @@ index d143605..8246482 100644
          PRODUCT = BOARD_PREFIX[BOARD] + m[2]
          VERSION = m[1] + "." + m[2] + (m[3] or "")
 -        name = f"dinghy-{a.release}{suffix}.fwsc"
-+        name = f"mdma-probe-{a.release}{suffix}.fwsc"
++        name = f"mdma-{a.release}{suffix}.fwsc"
      fm1pkg_make.SDK = a.sdk
      for rel, sha in SDK_SHA256.items():          # fail early without the SDK
          if hashlib.sha256(fm1pkg_make.sdk_file(rel)).hexdigest() != sha:

@@ -1,11 +1,37 @@
-# MDMA 0.5.5-alpha para FM-1
+# MDMA 0.5.5-alpha · LCD
 
-Primeira alpha nativa da série 0.5.5. A referência de comportamento e áudio é
+Atualização do painel da primeira alpha nativa da série 0.5.5. A referência de comportamento e áudio é
 [stable-v0.5.html](reference/stable-v0.5.html). O BSP vem do Dinghy, com a
 integração feita a partir da MDMA 0.4.8-lab.
 
-- [Firmware](build/MDMA-0.5.5-alpha.fwsc) e [mapa de memória](build/MDMA-0.5.5-alpha.map).
-- [Patch cumulativo](firmware/MDMA-0.5.5-alpha.patch), [testes](tests/) e [checksums](SHA256SUMS).
+- [Firmware](build/MDMA-0.5.5-alpha-lcd.fwsc) e [mapa de memória](build/MDMA-0.5.5-alpha-lcd.map).
+- [Patch cumulativo](firmware/MDMA-0.5.5-alpha-lcd.patch), [testes](tests/) e [checksums](SHA256SUMS).
+
+## Painel
+
+O LCD nativo usa a tipografia, a paleta e a estrutura de 240 × 240 do
+HTML de referência. A HOME mostra cena, cidade, BPM, tom, master, V1–V8 e
+as seis camadas com medidores. FX troca os quatro cartões inferiores
+e preserva a lista. HOME abre o Stage Map e volta para o mixer.
+
+- [HOME, FX, SEQ e Stage Map lado a lado](preview/home-fx-seq-stage.png)
+- [EDIT, SCL, GLO e SAVE lado a lado](preview/edit-scl-glo-save.png)
+
+Em SEQ, SELECT escolhe a peça da bateria, as teclas brancas editam seus
+passos e o quarto knob muda a camada exibida. Em GLO, SELECT navega pela
+lista e ALGORITHM ou OCT+/− ajusta a opção. Para medir o pico de áudio,
+abra a linha AUDIO MAX. Em EDIT, as teclas de camada selecionam o alvo.
+A origem emprestada aparece no rodapé. SAVE abre uma confirmação central
+para a gravação A/B de todas as cidades.
+
+EDIT, GLO e SAVE mostram os parâmetros e ações disponíveis no firmware.
+As capturas do emulador mostram os valores efetivos do firmware, inclusive
+a posição física simulada do MASTER. O Stage Map reflete o mixer atual.
+A modulação espacial da stable ainda não está conectada ao áudio nativo.
+
+A HOME, o FX e o SEQ atualizam medidores e playhead por regiões do LCD.
+Os testes com o DMA temporizado do fm1-emu verificaram navegação, controles,
+LCD parado sem redesenho, e gravação e restauração de FX e passos de HAT.
 
 ## Áudio e validação
 
@@ -39,7 +65,7 @@ O tempo de áudio do emulador não substitui a medição AUDIO MAX no FM-1.
 
 ## Uso no FM-1
 
-Use o arquivo `MDMA-0.5.5-alpha.fwsc`. Antes de SAVE, confira o áudio e os
+Use o arquivo `MDMA-0.5.5-alpha-lcd.fwsc`. Antes de SAVE, confira o áudio e os
 dados recuperados, e teste o resgate OCT− no boot. O SAVE usa MGR3 no par A/B
 em 0xB1000, lê MGR1 e MGR2 e bloqueia gravações sobre dados desconhecidos.
 Um firmware anterior só poderá ler uma cópia legada que ainda exista.
@@ -59,9 +85,9 @@ e o [SDK AC79NN](https://github.com/amitv87/fw-AC79_AIoT_SDK) no commit
 A partir do checkout Dinghy, com `ALPHA` apontando para este pacote:
 
 ```sh
-git apply "$ALPHA/firmware/MDMA-0.5.5-alpha.patch"
-JIELI_TOOLCHAIN=/caminho/toolchain AC79_SDK=/caminho/sdk ./build.sh --release 0.5.5-alpha
-cmp build/mdma-probe-0.5.5-alpha.fwsc "$ALPHA/build/MDMA-0.5.5-alpha.fwsc"
+git apply "$ALPHA/firmware/MDMA-0.5.5-alpha-lcd.patch"
+JIELI_TOOLCHAIN=/caminho/toolchain AC79_SDK=/caminho/sdk ./build.sh --release 0.5.5-lcd
+cmp build/mdma-0.5.5-lcd.fwsc "$ALPHA/build/MDMA-0.5.5-alpha-lcd.fwsc"
 cc -O2 -std=c11 -Ifirmware/src "$ALPHA/tests/lead-reference.c" -o /tmp/mdma-lead
 for city in 0 1 2; do
   node "$ALPHA/tests/lead-reference.cjs" "$ALPHA/reference/stable-v0.5.html" /tmp/mdma-lead "$city"
@@ -71,7 +97,7 @@ cc -O2 -std=c11 -Ifirmware/src "$ALPHA/tests/test-integration.c" -o /tmp/mdma-in
 /tmp/mdma-integration
 cc -O2 -Ifirmware/hal -Ifirmware/src -Ifirmware/gen "$ALPHA/tests/test-midi.c" -o /tmp/mdma-midi
 /tmp/mdma-midi
-node "$ALPHA/tests/test-native.mjs" /caminho/fm1-emu/web/dist build/mdma-probe-0.5.5-alpha.fwsc
+node "$ALPHA/tests/test-lcd.mjs" /caminho/fm1-emu/web/dist build/mdma-0.5.5-lcd.fwsc
 ```
 
 Para regenerar as tabelas no checkout Dinghy, execute
