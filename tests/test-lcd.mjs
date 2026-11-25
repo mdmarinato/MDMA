@@ -213,6 +213,9 @@ console.log('LCD FM-1 com DMA temporizado: HOME, FX, Stage Map, EDIT, GLO, SCL, 
 
 shortEdit();
 tap(34); // LEAD selected in EDIT without toggling the layer
+const gridRow=box(206,19);
+turn(1,-1);assert.notDeepEqual(box(206,19),gridRow);
+turn(1,1);assert.deepEqual(box(206,19),gridRow);
 const free = box(171, 32);
 turn(5, 4);
 turn(1, 1);
@@ -230,7 +233,7 @@ assert.equal(x.fm1_flash_restore(copy(restore), restore.length), 0);
 level(2);
 shortEdit();
 tap(34);
-turn(0, 3);
+turn(0, -1);
 assert(box(171, 32).every((value, index) => value === sync[index]),
   'GHOST RATE/SYNC não voltou após reiniciar');
 console.log('GHOST RATE/SYNC atualizado e recuperado no FM-1 emulado.');

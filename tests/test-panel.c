@@ -65,7 +65,11 @@ int main(void){
     memset(scene_variation,0,sizeof scene_variation);
     assert(groove_decode(saved,sizeof saved,true));
     panel_key(3);assert(layer_variation[0][1]==4 && layer_variation[0][3]==2);
-    page=PAGE_EDIT;press(BTN_REC);release(BTN_REC);assert(!city_ghost_grid[0]);
+    page=PAGE_HOME;press(BTN_EDIT);release(BTN_EDIT);assert(page==PAGE_EDIT && edit_row==4);
+    press(BTN_REC);release(BTN_REC);assert(city_ghost_grid[0]);
+    enc[ENC_ALGORITHM]=-1;panel_scan_knobs();assert(!city_ghost_grid[0]);
+    enc[ENC_ALGORITHM]=1;panel_scan_knobs();assert(city_ghost_grid[0]);
+    enc[ENC_ALGORITHM]=-1;panel_scan_knobs();assert(!city_ghost_grid[0]);
     panel_key(1);assert(!city_ghost_grid[0]);
     page=PAGE_HOME;selected_layer=1;
     for(unsigned scene=0;scene<4;++scene){

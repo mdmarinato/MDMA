@@ -1,6 +1,6 @@
-# MDMA 0.5.5-alpha-scenes para o FM-1
+# MDMA 0.5.5-alpha-ghost-edit para o FM-1
 
-[Baixar o ZIP desta versão](https://github.com/mdmarinato/MDMA/raw/refs/tags/v0.5.5-alpha-scenes/MDMA-0.5.5-alpha-scenes.zip). Extraia e use o arquivo em `build/MDMA-0.5.5-alpha-scenes.fwsc` com o instalador que você usou na alpha anterior.
+[Baixar o ZIP desta versão](https://github.com/mdmarinato/MDMA/raw/refs/tags/v0.5.5-alpha-ghost-edit/MDMA-0.5.5-alpha-ghost-edit.zip). Extraia e use o arquivo em `build/MDMA-0.5.5-alpha-ghost-edit.fwsc` com o instalador que você usou na alpha anterior.
 
 A referência é a stable HTML da 0.5.5-beta. [Conferência por função](PARIDADE.md) · [Checksums](SHA256SUMS) · [Referência HTML](reference/stable-v0.5.html).
 
@@ -15,13 +15,13 @@ A referência é a stable HTML da 0.5.5-beta. [Conferência por função](PARIDA
 
 Na HOME, selecione BASS ou LEAD e gire ALGORITHM para escolher uma das oito variações da camada. No BASS de fábrica, a variação 1 mantém a tônica em GROOVE, TENSION e PEAK. Cada cidade guarda as escolhas das duas camadas separadamente nas quatro cenas, inclusive no SAVE, nos pontos de retorno e no backup.
 
-Cidades novas começam em GRID. No EDIT do LEAD, um clique em REC alterna GRID/STABLE e o próximo volta. A escolha acompanha a cidade quando você muda de cena. Em HOLD, GRID encaixa a frase na grade e STABLE permite aproximações entre notas. ALIEN conserva sua frase própria. Um save antigo conserva as variações da cena que estava aberta e o modo que já tinha gravado. As outras cenas recebem as novas escolhas iniciais. A alpha-flow anterior não lê os campos de memória por cena desta versão. Guarde seu backup anterior caso queira voltar.
+Cidades novas começam em GRID. No EDIT do LEAD, a linha GHOST abre selecionada. Gire ALGORITHM para a esquerda para FREE ou para a direita para GRID. A escolha acompanha a cidade quando você muda de cena. Em HOLD, GRID encaixa a frase na grade e FREE permite aproximações entre notas. ALIEN conserva sua frase própria. Um save antigo conserva as variações da cena que estava aberta e o modo que já tinha gravado. As outras cenas recebem as novas escolhas iniciais. A alpha-flow anterior não lê os campos de memória por cena desta versão. Guarde seu backup anterior caso queira voltar.
 
 ## Tocar e editar
 
 - HOME percorre a lista de camadas, o Stage Map e o mixer de seis tiras. No Stage, o movimento afeta pan, filtro e envios. Na lista, no mapa e no mixer, segure LFO para solo ou ENV para mudo da camada selecionada. Solte para voltar à mixagem. O mixer mostra seis VUs e os quatro controles da camada embaixo. ARP está livre.
 - Os knobs de mix e FX avançam uma unidade por clique em giro normal. Acima de 60 cliques/s de velocidade suavizada, a resposta aumenta progressivamente até três unidades por clique a 160 cliques/s. Soltar o knob encerra a edição. O áudio suaviza a transição em cerca de 12 ms.
-- EDIT abre quatro parâmetros da camada selecionada. OCT+ e OCT− navegam DRUMS, BASS, AMB, PLUCK, LEAD e SPARKS, mantendo o BPM. KNOB1–4 ajustam valores, SELECT escolhe a linha e ALGORITHM altera o tipo. No EDIT do LEAD, REC alterna STABLE e GRID por cidade. GRID aproxima o glide de 50 ms no centro, restringe a faixa e ancora o Ghost HOLD à grade. A frase de ALIEN continua própria. GLO mantém BASS MODE e LEAD MODE separados.
+- EDIT abre quatro parâmetros da camada selecionada. OCT+ e OCT− navegam DRUMS, BASS, AMB, PLUCK, LEAD e SPARKS, mantendo o BPM. KNOB1–4 ajustam valores, SELECT escolhe a linha e ALGORITHM altera o tipo. No EDIT do LEAD, SELECT navega pelas cinco linhas. Em GHOST, ALGORITHM escolhe FREE ou GRID por cidade. GRID aproxima o glide de 50 ms no centro, restringe a faixa e ancora o Ghost HOLD à grade. A frase de ALIEN continua própria. GLO mantém BASS MODE e LEAD MODE separados.
 - Na HOME, as teclas brancas tocam a camada selecionada. DRUMS distribui seis peças, PLUCK e SPARKS disparam notas e BASS, AMB e LEAD sustentam a tecla. No MIDI, os canais 1–6 seguem DRUMS, BASS, PLUCK, LEAD, AMB e SPARKS.
 - No SEQ de DRUMS, SELECT escolhe a peça. Um toque curto alterna o passo. Segure por 275 ms e use KNOB1–4 para VEL, TIME, ATK e REL. Cada valor aparece abaixo do rótulo. Girar um knob ativa um passo vazio. Solte a tecla para terminar. Um novo toque alterna o passo. Há espaço para **16 passos com parâmetros modificados** no conjunto de cidades. Levar os quatro valores ao centro libera uma posição. Sem tecla segurada, KNOB1 cria um rascunho, KNOB2 positivo ouve a prévia e KNOB3 positivo aplica. Giro negativo de KNOB2 ou KNOB3 descarta.
 - PRESETS percorre cidades. Segure EDIT na HOME e gire PRESETS para trocar a origem da camada. GLO permite criar até cinco cidades além das três de fábrica.
@@ -45,11 +45,11 @@ A tabela de medições desta compilação está em PARIDADE.md. A confirmação 
 Aplique o patch no Dinghy `ea1b6bf5973b11f9b4b806d08155602aaa0b505e`. Use o toolchain JieLi Linux 20260730.1 e os binários do SDK AC79NN `d179b4484759423312073f5fbb232501aa491047`. No diretório Dinghy, com ALPHA apontando para este pacote, execute
 
 ```sh
-git apply "$ALPHA/firmware/MDMA-0.5.5-alpha-scenes.patch"
+git apply "$ALPHA/firmware/MDMA-0.5.5-alpha-ghost-edit.patch"
 node tools/mdma_patterns.cjs "$ALPHA/reference/stable-v0.5.html"
 python3 tools/mdma_lead_tables.py
 python3 tools/mdma_mix_tables.py
-JIELI_TOOLCHAIN=/caminho/toolchain AC79_SDK=/caminho/sdk ./build.sh --release 0.5.5-scenes
-cmp build/mdma-0.5.5-scenes.fwsc "$ALPHA/build/MDMA-0.5.5-alpha-scenes.fwsc"
+JIELI_TOOLCHAIN=/caminho/toolchain AC79_SDK=/caminho/sdk ./build.sh --release 0.5.5-ghostedit
+cmp build/mdma-0.5.5-ghostedit.fwsc "$ALPHA/build/MDMA-0.5.5-alpha-ghost-edit.fwsc"
 sh "$ALPHA/tests/run-all.sh" /caminho/fm1-emu/web/dist
 ```

@@ -1,4 +1,4 @@
-# Paridade e diagnóstico da 0.5.5-alpha-scenes
+# Paridade e diagnóstico da 0.5.5-alpha-ghost-edit
 
 Referência funcional e musical em `stable-v0.5.html` da 0.5.5-beta, SHA-256 `50302022da4ab83527823f9576983529f08755178d080cee3c15a184e6f83d3c`. O diagnóstico da alpha-ghost orientou os testes de trajetória e os controles opcionais. O relato físico de picotes veio da alpha-stage. A alpha-scenes foi avaliada em host e emulador.
 
