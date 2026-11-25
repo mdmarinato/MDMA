@@ -77,11 +77,11 @@ function turn(encoder, delta, seconds = 0.4) {
   level(seconds);
 }
 
-function shortEdit() {
+function shortEdit(settle=true) {
   x.fm1_key(6, 1);
   level(0.05);
   x.fm1_key(6, 0);
-  level(0.2);
+  level(settle ? 0.4 : 0.10);
 }
 
 const box = (top, height) => area(8, top, 224, height);
@@ -335,3 +335,16 @@ const allScope=box(52,122);
 turn(1,1);assert.notDeepEqual(box(52,122),allScope,'SAVE não mostrou CURRENT CITY');
 turn(1,-1);assert.deepEqual(box(52,122),allScope,'SAVE não voltou para ALL CITIES');
 console.log('ARP inativo, navegação OCT em EDIT e escopo de SAVE passaram.');
+
+boot();level(2);
+shortEdit(false);shortEdit();
+const grid16=box(65,90);
+tap(40); // sixteenth white key
+turn(2,3);
+assert.notDeepEqual(box(65,90),grid16,'passo 16 não abriu para edição');
+const pitch16=box(65,90);
+turn(3,1);
+assert.notDeepEqual(box(65,90),pitch16,'tipo do passo não mudou');
+shortEdit();
+assert.notDeepEqual(box(65,90),grid16,'EDIT não retornou aos parâmetros');
+console.log('EDIT duplo, nota no passo 16 e pausa passaram no emulador.');

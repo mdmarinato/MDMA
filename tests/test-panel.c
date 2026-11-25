@@ -56,15 +56,15 @@ int main(void){
 
     /* Switch and revisit scenes via the keyboard and the same encoder as HOME. */
     assert(city_ghost_grid[0]);
-    panel_key(3);assert(layer_variation[0][1]==1);
+    panel_key(3);assert(layer_variation[0][1]==0);
     enc[ENC_ALGORITHM]=3;panel_scan_knobs();
     selected_layer=3;enc[ENC_ALGORITHM]=2;panel_scan_knobs();
     panel_key(5);assert(layer_variation[0][1]==3 && layer_variation[0][3]==2);
-    panel_key(8);assert(layer_variation[0][1]==2);
+    panel_key(8);assert(layer_variation[0][1]==3);
     uint8_t saved[GROOVE_RECORD];groove_encode(saved);
-    memset(scene_variation,0,sizeof scene_variation);
+    memset(layer_variation[0],0,sizeof layer_variation[0]);
     assert(groove_decode(saved,sizeof saved,true));
-    panel_key(3);assert(layer_variation[0][1]==4 && layer_variation[0][3]==2);
+    panel_key(3);assert(layer_variation[0][1]==3 && layer_variation[0][3]==2);
     page=PAGE_HOME;press(BTN_EDIT);release(BTN_EDIT);assert(page==PAGE_EDIT && edit_row==4);
     press(BTN_REC);release(BTN_REC);assert(city_ghost_grid[0]);
     enc[ENC_ALGORITHM]=-1;panel_scan_knobs();assert(!city_ghost_grid[0]);
@@ -75,13 +75,23 @@ int main(void){
     for(unsigned scene=0;scene<4;++scene){
         int previous=-1;bool up=false,down=false;
         for(unsigned step=0;step<64;++step){
-            int note=scene_lead_note(0,scene,scene_defaults[scene][1],step,true);
+            int note=scene_lead_note(0,scene,scene,step,true);
             if(previous>=0){up|=note>previous;down|=note<previous;}
             previous=note;
         }
         assert(up && down);
     }
 
+    press(BTN_EDIT);release(BTN_EDIT);fm1_ms+=120;
+    press(BTN_EDIT);release(BTN_EDIT);assert(page==PAGE_NOTES);
+    enc[ENC_KNOB1]=3;panel_scan_knobs();
+    assert(melody_value(0,1,3,0)==48);
+    enc[ENC_SELECT]=15;panel_scan_knobs();assert(note_cursor==15);
+    enc[ENC_KNOB2]=-1;panel_scan_knobs();assert(melody_value(0,1,3,15)==STEP_TIE);
+    groove_encode(saved);memset(step_shapes,0,sizeof step_shapes);
+    assert(groove_decode(saved,sizeof saved,true) && melody_value(0,1,3,0)==48 && melody_value(0,1,3,15)==STEP_TIE);
+    press(BTN_EDIT);release(BTN_EDIT);assert(page==PAGE_EDIT);
+    page=PAGE_HOME;
     /* ARP has no function. */
     press(BTN_ARP);assert(qa_ready_mask==63 && selected_layer==1);
 
@@ -123,7 +133,7 @@ int main(void){
     fm1_ms+=1000;panel_mix[active_city][0][MIX_PAN]=0;
     for(unsigned i=0;i<20;++i){fm1_ms+=33;enc[ENC_KNOB2]=1;panel_scan_knobs();}
     assert(panel_mix[active_city][0][MIX_PAN]==20);
-    /* a 200 clicks/s spin ramps up smoothly to no more than 3 steps per click */
+    /* a 200 clicks/s spin ramps up smoothly to no more than 5 steps per click */
     fm1_ms+=1000;panel_mix[active_city][0][MIX_PAN]=0;
     unsigned previous=0,largest=0,first=0;
     for(unsigned i=0;i<30;++i){
@@ -131,9 +141,9 @@ int main(void){
         const unsigned now=panel_mix[active_city][0][MIX_PAN],step=now-previous;previous=now;
         if(!i)first=step;
         if(step>largest)largest=step;
-        assert(step<=3);
+        assert(step<=5);
     }
-    assert(first==1 && largest==3);
+    assert(first==1 && largest==5);
     fm1_ms+=3000;panel_scan_knobs();assert(panel_mix[active_city][0][MIX_PAN]==previous);
 
     /* SAVE: ALGORITHM switches ALL CITIES / CURRENT CITY on the main row, the action on the points. */
@@ -181,12 +191,15 @@ int main(void){
     /* Exercise both synth targets on the audio path at real sequencer steps. */
     active_city=0;panel_reset_city(0);qa_source=1;qa_running=1;
     groove_enabled=GROOVE_BASS|GROOVE_LEAD;
+    uint32_t bass_reference[128],lead_reference[128];
     for(unsigned scene=0;scene<4;++scene){
         select_scene(0,scene);groove_publish();qa_ticks=0;++qa_start_serial;
         uint32_t first_bass=0;int last_lead=0;
         bool bass_changed=false,up=false,down=false;
         for(unsigned tick=1;tick<=128;++tick){
             qa_ticks=tick;memset(block,0,sizeof block);groove_audio(block,256,false);
+            if(!scene){bass_reference[tick-1]=acid.goal_inc;lead_reference[tick-1]=lead_ghost.target_pitch;}
+            else {assert(acid.goal_inc==bass_reference[tick-1]);assert((uint32_t)lead_ghost.target_pitch==lead_reference[tick-1]);}
             if(tick==1)first_bass=acid.goal_inc;
             bass_changed|=acid.goal_inc!=first_bass;
             if(last_lead){up|=lead_ghost.target_pitch>last_lead;down|=lead_ghost.target_pitch<last_lead;}
@@ -194,7 +207,18 @@ int main(void){
         }
         assert(bass_changed && up && down);
     }
-    puts("BASS e LEAD HOLD: movimento de pitch confirmado nas quatro cenas");
+    assert(melody_write(0,1,0,0,48) && melody_write(0,3,0,0,72));
+    assert(melody_write(0,1,0,1,STEP_TIE) && melody_write(0,3,0,1,STEP_TIE));
+    assert(melody_write(0,1,0,2,STEP_REST) && melody_write(0,3,0,2,STEP_REST));
+    ++qa_start_serial;
+    for(unsigned tick=1;tick<=3;++tick){
+        qa_ticks=tick;memset(block,0,sizeof block);groove_audio(block,256,false);
+        if(tick<3){assert(acid.goal_inc==groove_inc(24) && (uint32_t)lead_ghost.target_pitch==groove_inc(48));}
+        assert(bass_step_rest==(tick==3) && lead_step_rest==(tick==3));
+        assert((melody_midi_event[0]&127u)==(tick==3?0:48));
+        assert((melody_midi_event[1]&127u)==(tick==3?0:72));
+    }
+    puts("BASS e LEAD: 128 passos idênticos nas quatro cenas, nota MIDI, pausa e sustain");
     /* Every page renders with the stubbed canvas. */
     for(page=PAGE_HOME;page<=PAGE_MIX;++page){panel_notice=0;panel_dirty=true;panel_render();}
     puts("panel: ARP, EDIT layer walk, solo/mute hold, knob feel, SAVE scope, SEQ step edit OK");

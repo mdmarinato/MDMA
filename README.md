@@ -1,26 +1,25 @@
-# MDMA 0.5.5-alpha-ghost-edit para o FM-1
+# MDMA 0.5.5-alpha-live para o FM-1
 
-[Baixar o ZIP desta versão](https://github.com/mdmarinato/MDMA/raw/refs/tags/v0.5.5-alpha-ghost-edit/MDMA-0.5.5-alpha-ghost-edit.zip). Extraia e use o arquivo em `build/MDMA-0.5.5-alpha-ghost-edit.fwsc` com o instalador que você usou na alpha anterior.
+[Baixar o ZIP desta versão](https://github.com/mdmarinato/MDMA/raw/refs/tags/v0.5.5-alpha-live/MDMA-0.5.5-alpha-live.zip). Extraia e use o arquivo em `build/MDMA-0.5.5-alpha-live.fwsc` com o instalador que você usou na alpha anterior.
 
 A referência é a stable HTML da 0.5.5-beta. [Conferência por função](PARIDADE.md) · [Checksums](SHA256SUMS) · [Referência HTML](reference/stable-v0.5.html).
 
-## BASS e LEAD por cena
+## Cenas e variações
 
-| Cena | BASS HOLD | LEAD HOLD |
-| --- | --- | --- |
-| INTRO | Frase original quando a origem é a própria cidade | Percorre a frase da stable a meia velocidade e volta. |
-| GROOVE | Variação 2, balanço de duas notas | Variação 1, com resposta mais forte no contratempo. |
-| TENSION | Variação 4, subida de quatro notas | Variação 3, com mais notas de passagem e percurso de volta. |
-| PEAK | Variação 3, salto de uma oitava | Variação 4, frase mais aberta com resolução do agudo. |
+INTRO, GROOVE, TENSION e PEAK mudam a bateria. PLUCK e SPARKS continuam consultando a cena e AMB acompanha a tonalidade. BASS e LEAD guardam uma escolha de V1–V8 por camada e cidade. O transporte continua na mesma posição quando a cena muda. Por exemplo, deixe o LEAD de Ibiza em V1 e troque a bateria de INTRO para PEAK.
 
-Na HOME, selecione BASS ou LEAD e gire ALGORITHM para escolher uma das oito variações da camada. No BASS de fábrica, a variação 1 mantém a tônica em GROOVE, TENSION e PEAK. Cada cidade guarda as escolhas das duas camadas separadamente nas quatro cenas, inclusive no SAVE, nos pontos de retorno e no backup.
+V1 dá acesso às frases da INTRO. No BASS HOLD de fábrica, V2 alterna duas notas, V3 trabalha a oitava e V4 sobe pela escala. Na HOME, ALGORITHM muda a variação da camada selecionada. Ao abrir um save da alpha-scenes ou ghost-edit, vale a seleção da cena que estava gravada como ativa naquela cidade. No EDIT do LEAD, GHOST abre selecionado. ALGORITHM à esquerda escolhe FREE e à direita GRID. HOLD e ALIEN ficam no GLO.
 
-Cidades novas começam em GRID. No EDIT do LEAD, a linha GHOST abre selecionada. Gire ALGORITHM para a esquerda para FREE ou para a direita para GRID. A escolha acompanha a cidade quando você muda de cena. Em HOLD, GRID encaixa a frase na grade e FREE permite aproximações entre notas. ALIEN conserva sua frase própria. Um save antigo conserva as variações da cena que estava aberta e o modo que já tinha gravado. As outras cenas recebem as novas escolhas iniciais. A alpha-flow anterior não lê os campos de memória por cena desta versão. Guarde seu backup anterior caso queira voltar.
+## Sequenciador de BASS e LEAD
+
+Dê dois toques em EDIT com BASS ou LEAD selecionado. A tela mostra os 16 passos em duas linhas de oito. SELECT ou as 16 teclas brancas escolhem o passo. KNOB1 define uma nota MIDI de 24 a 96. KNOB2 percorre AUTO (frase original), nota, pausa e sustentar. ALGORITHM troca V1–V8. EDIT volta aos parâmetros. As notas programadas também são enviadas pelo MIDI nos canais 2 (BASS) e 4 (LEAD); pausa encerra a nota e sustentar prolonga a anterior.
+
+O save tem 16 posições compartilhadas com as edições de VEL/TIME/ATK/REL da bateria. Um grupo de quatro passos melódicos consecutivos (1–4, 5–8, 9–12 ou 13–16) usa uma posição quando tem alguma edição. Com a memória livre, cabem quatro frases de 16 passos inteiramente personalizadas. Voltar todos os passos de um grupo para AUTO libera a posição. STEP MEMORY FULL indica que a nova edição não coube. Faça backup antes de voltar a um firmware antigo, que pode recusar saves com passos melódicos.
 
 ## Tocar e editar
 
 - HOME percorre a lista de camadas, o Stage Map e o mixer de seis tiras. No Stage, o movimento afeta pan, filtro e envios. Na lista, no mapa e no mixer, segure LFO para solo ou ENV para mudo da camada selecionada. Solte para voltar à mixagem. O mixer mostra seis VUs e os quatro controles da camada embaixo. ARP está livre.
-- Os knobs de mix e FX avançam uma unidade por clique em giro normal. Acima de 60 cliques/s de velocidade suavizada, a resposta aumenta progressivamente até três unidades por clique a 160 cliques/s. Soltar o knob encerra a edição. O áudio suaviza a transição em cerca de 12 ms.
+- Os knobs de mix e FX avançam uma unidade por clique em giro normal. Acima de 36 cliques/s de velocidade suavizada, o ganho aumenta progressivamente até cinco unidades por clique a 135 cliques/s. O EDIT aplica a mesma leitura de velocidade com ganho menor para a escala de 41 posições. O MASTER físico usa entrada analógica e os outros knobs usam encoders. Soltar o knob encerra a edição. O áudio suaviza a transição em cerca de 12 ms.
 - EDIT abre quatro parâmetros da camada selecionada. OCT+ e OCT− navegam DRUMS, BASS, AMB, PLUCK, LEAD e SPARKS, mantendo o BPM. KNOB1–4 ajustam valores, SELECT escolhe a linha e ALGORITHM altera o tipo. No EDIT do LEAD, SELECT navega pelas cinco linhas. Em GHOST, ALGORITHM escolhe FREE ou GRID por cidade. GRID aproxima o glide de 50 ms no centro, restringe a faixa e ancora o Ghost HOLD à grade. A frase de ALIEN continua própria. GLO mantém BASS MODE e LEAD MODE separados.
 - Na HOME, as teclas brancas tocam a camada selecionada. DRUMS distribui seis peças, PLUCK e SPARKS disparam notas e BASS, AMB e LEAD sustentam a tecla. No MIDI, os canais 1–6 seguem DRUMS, BASS, PLUCK, LEAD, AMB e SPARKS.
 - No SEQ de DRUMS, SELECT escolhe a peça. Um toque curto alterna o passo. Segure por 275 ms e use KNOB1–4 para VEL, TIME, ATK e REL. Cada valor aparece abaixo do rótulo. Girar um knob ativa um passo vazio. Solte a tecla para terminar. Um novo toque alterna o passo. Há espaço para **16 passos com parâmetros modificados** no conjunto de cidades. Levar os quatro valores ao centro libera uma posição. Sem tecla segurada, KNOB1 cria um rascunho, KNOB2 positivo ouve a prévia e KNOB3 positivo aplica. Giro negativo de KNOB2 ou KNOB3 descarta.
@@ -45,11 +44,11 @@ A tabela de medições desta compilação está em PARIDADE.md. A confirmação 
 Aplique o patch no Dinghy `ea1b6bf5973b11f9b4b806d08155602aaa0b505e`. Use o toolchain JieLi Linux 20260730.1 e os binários do SDK AC79NN `d179b4484759423312073f5fbb232501aa491047`. No diretório Dinghy, com ALPHA apontando para este pacote, execute
 
 ```sh
-git apply "$ALPHA/firmware/MDMA-0.5.5-alpha-ghost-edit.patch"
+git apply "$ALPHA/firmware/MDMA-0.5.5-alpha-live.patch"
 node tools/mdma_patterns.cjs "$ALPHA/reference/stable-v0.5.html"
 python3 tools/mdma_lead_tables.py
 python3 tools/mdma_mix_tables.py
-JIELI_TOOLCHAIN=/caminho/toolchain AC79_SDK=/caminho/sdk ./build.sh --release 0.5.5-ghostedit
-cmp build/mdma-0.5.5-ghostedit.fwsc "$ALPHA/build/MDMA-0.5.5-alpha-ghost-edit.fwsc"
+JIELI_TOOLCHAIN=/caminho/toolchain AC79_SDK=/caminho/sdk ./build.sh --release 0.5.5-live
+cmp build/mdma-0.5.5-live.fwsc "$ALPHA/build/MDMA-0.5.5-alpha-live.fwsc"
 sh "$ALPHA/tests/run-all.sh" /caminho/fm1-emu/web/dist
 ```
