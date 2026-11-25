@@ -20,7 +20,7 @@ cc -O2 -Ifirmware/src "$package/tests/lead-reference.c" -o "$tmp/lead"
 for city in 0 1 2; do node "$package/tests/lead-reference.cjs" "$ref" "$tmp/lead" "$city"; done
 for mode in alien offset sync band linear; do node "$package/tests/lead-reference.cjs" "$ref" "$tmp/lead" 0 "$mode"; done
 if [ "$#" -gt 0 ]; then
-  fw="$package/build/MDMA-0.5.5-alpha-flow.fwsc"
+  fw="$package/build/MDMA-0.5.5-alpha-scenes.fwsc"
   node "$package/tests/test-lcd.mjs" "$1" "$fw"
   node "$package/tests/audio-budget.mjs" "$1" "$fw"
 fi

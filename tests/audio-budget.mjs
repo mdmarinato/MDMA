@@ -14,8 +14,8 @@ let mem=Buffer.from(x.memory.buffer),marker=Buffer.from('0b111da942a711f7','hex'
 let idx=-1,found=-1;
 while((idx=mem.indexOf(marker,idx+1))>=0)if(mem.readUInt32LE(idx+12)>0)found=idx;
 if(found<0)throw Error('no live timer');
-for(const [label,key] of [['drums',24],['drums+bass',27],['+amb',29],['+pluck',31],['+lead',34],['seis',36]]){
- x.fm1_key(key,1);render(.15);x.fm1_key(key,0);render(.2);
+for(const [label,key] of [['drums',24],['drums+bass',27],['+amb',29],['+pluck',31],['+lead',34],['seis',36],['GROOVE',17],['TENSION',19],['PEAK',22]]){
+ x.fm1_key(key,1);render(.15);x.fm1_key(key,0);render([17,19,22].includes(key)?2.1:.2);
  mem=Buffer.from(x.memory.buffer);mem.writeUInt32LE(0,found+8);
  const overruns=mem.readUInt32LE(found+16),blocks=mem.readUInt32LE(found+12);
  render(4);mem=Buffer.from(x.memory.buffer);

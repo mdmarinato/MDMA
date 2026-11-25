@@ -191,6 +191,11 @@ int main(void){
     uint8_t v5[GROOVE_V5]={0},current[GROOVE_RECORD];
     groove_encode(current);memcpy(v5,current,8);v5[3]='5';
     for(unsigned k=0;k<city_count;++k)memcpy(v5+8+k*GROOVE_V5_CITY,current+8+k*GROOVE_CITY_BYTES,GROOVE_V5_CITY);
+    for(unsigned k=0;k<city_count;++k){
+        uint8_t *row=v5+8+k*GROOVE_V5_CITY;
+        row[34]=0;
+        for(unsigned l=0;l<LAYER_COUNT;++l)row[99+l]&=7;
+    }
     assert(groove_decode(v5,sizeof v5,true) && city_voice_edit[1][2]==0);
     unsigned before=erases;
     flash[4096+20]^=1;boot();assert(active_city==0 && groove_edits[0].bpm==140);

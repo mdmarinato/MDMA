@@ -1,8 +1,21 @@
-# MDMA 0.5.5-alpha-flow para o FM-1
+# MDMA 0.5.5-alpha-scenes para o FM-1
 
-[Baixar o ZIP desta versão](https://github.com/mdmarinato/MDMA/raw/refs/tags/v0.5.5-alpha-flow/MDMA-0.5.5-alpha-flow.zip). Extraia e use o arquivo em `build/MDMA-0.5.5-alpha-flow.fwsc` com o instalador que você usou na alpha anterior.
+[Baixar o ZIP desta versão](https://github.com/mdmarinato/MDMA/raw/refs/tags/v0.5.5-alpha-scenes/MDMA-0.5.5-alpha-scenes.zip). Extraia e use o arquivo em `build/MDMA-0.5.5-alpha-scenes.fwsc` com o instalador que você usou na alpha anterior.
 
 A referência é a stable HTML da 0.5.5-beta. [Conferência por função](PARIDADE.md) · [Checksums](SHA256SUMS) · [Referência HTML](reference/stable-v0.5.html).
+
+## BASS e LEAD por cena
+
+| Cena | BASS HOLD | LEAD HOLD |
+| --- | --- | --- |
+| INTRO | Frase original quando a origem é a própria cidade | Percorre a frase da stable a meia velocidade e volta. |
+| GROOVE | Variação 2, balanço de duas notas | Variação 1, com resposta mais forte no contratempo. |
+| TENSION | Variação 4, subida de quatro notas | Variação 3, com mais notas de passagem e percurso de volta. |
+| PEAK | Variação 3, salto de uma oitava | Variação 4, frase mais aberta com resolução do agudo. |
+
+Na HOME, selecione BASS ou LEAD e gire ALGORITHM para escolher uma das oito variações da camada. No BASS de fábrica, a variação 1 mantém a tônica em GROOVE, TENSION e PEAK. Cada cidade guarda as escolhas das duas camadas separadamente nas quatro cenas, inclusive no SAVE, nos pontos de retorno e no backup.
+
+Cidades novas começam em GRID. No EDIT do LEAD, um clique em REC alterna GRID/STABLE e o próximo volta. A escolha acompanha a cidade quando você muda de cena. Em HOLD, GRID encaixa a frase na grade e STABLE permite aproximações entre notas. ALIEN conserva sua frase própria. Um save antigo conserva as variações da cena que estava aberta e o modo que já tinha gravado. As outras cenas recebem as novas escolhas iniciais. A alpha-flow anterior não lê os campos de memória por cena desta versão. Guarde seu backup anterior caso queira voltar.
 
 ## Tocar e editar
 
@@ -25,18 +38,18 @@ A ferramenta em `backup/index.html` transfere cidades por USB MIDI SysEx no Chro
 
 Abra o mixer, pressione REC e ligue só DRUMS. AUDIO MAX mostra o maior tempo de atendimento desde que a calibração foi aberta. Depois ligue as outras camadas. Para começar outra medição, saia e volte com REC. Cada bloco contém 256 frames a 44,1 kHz e vence em aproximadamente 5805 µs. Um pico de 2900 µs ocupa metade desse intervalo. A proteção reduz o reverb ao longo de cerca de 46 ms quando a síntese supera 75% do prazo e tenta restaurá-lo após oito segundos de carga menor. A tela indica quando está ativa.
 
-No emulador a 100 MHz em Búzios, com LCD temporizado e janelas de quatro segundos, DRUMS sozinho passou de 336 atrasos em 354 blocos na alpha-stage para zero em 690 nesta versão. O pico caiu de 8375 para 3885 µs. Com as seis camadas, o pico foi 5070 µs e os 689 blocos cumpriram o prazo. Ainda falta ouvir e medir esta compilação no FM-1 físico.
+A tabela de medições desta compilação está em PARIDADE.md. A confirmação com áudio e encoders físicos continua pendente.
 
 ## Reproduzir
 
 Aplique o patch no Dinghy `ea1b6bf5973b11f9b4b806d08155602aaa0b505e`. Use o toolchain JieLi Linux 20260730.1 e os binários do SDK AC79NN `d179b4484759423312073f5fbb232501aa491047`. No diretório Dinghy, com ALPHA apontando para este pacote, execute
 
 ```sh
-git apply "$ALPHA/firmware/MDMA-0.5.5-alpha-flow.patch"
+git apply "$ALPHA/firmware/MDMA-0.5.5-alpha-scenes.patch"
 node tools/mdma_patterns.cjs "$ALPHA/reference/stable-v0.5.html"
 python3 tools/mdma_lead_tables.py
 python3 tools/mdma_mix_tables.py
-JIELI_TOOLCHAIN=/caminho/toolchain AC79_SDK=/caminho/sdk ./build.sh --release 0.5.5-flow
-cmp build/mdma-0.5.5-flow.fwsc "$ALPHA/build/MDMA-0.5.5-alpha-flow.fwsc"
+JIELI_TOOLCHAIN=/caminho/toolchain AC79_SDK=/caminho/sdk ./build.sh --release 0.5.5-scenes
+cmp build/mdma-0.5.5-scenes.fwsc "$ALPHA/build/MDMA-0.5.5-alpha-scenes.fwsc"
 sh "$ALPHA/tests/run-all.sh" /caminho/fm1-emu/web/dist
 ```

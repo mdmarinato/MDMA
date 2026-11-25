@@ -1,11 +1,11 @@
-# Paridade e diagnóstico da 0.5.5-alpha-flow
+# Paridade e diagnóstico da 0.5.5-alpha-scenes
 
-Referência funcional e musical em `stable-v0.5.html` da 0.5.5-beta, SHA-256 `50302022da4ab83527823f9576983529f08755178d080cee3c15a184e6f83d3c`. O diagnóstico da alpha-ghost orientou os testes de trajetória e os controles opcionais. O relato físico de picotes veio da alpha-stage. A alpha-flow foi avaliada em host e emulador.
+Referência funcional e musical em `stable-v0.5.html` da 0.5.5-beta, SHA-256 `50302022da4ab83527823f9576983529f08755178d080cee3c15a184e6f83d3c`. O diagnóstico da alpha-ghost orientou os testes de trajetória e os controles opcionais. O relato físico de picotes veio da alpha-stage. A alpha-scenes foi avaliada em host e emulador.
 
 | Área | Implementação e verificação | Limites conhecidos |
 | --- | --- | --- |
 | Padrões e cidades | Comparação com o JavaScript de 608 conjuntos de seis camadas, quatro cenas e oito variações. Búzios, Ibiza e Rio preservam os dados originais. Macros de síntese e valores de retorno vêm da stable. | A criação escolhe entre 16 receitas pré-compiladas. Sementes arbitrárias e snapshots completos de edição por origem continuam pendentes. |
-| Ghost | O modo STABLE passa pelas oito comparações de PCM isolado anteriores. GRID é opcional por cidade. Em 120 s de HOLD, A menor, 132 BPM, com amostragem de pitch a cada 32 frames, STABLE passou 33,35% do tempo a mais de 25 cents de uma nota, GRID 2,40%. As 24 mudanças observadas em GRID ocorreram em mudança de slot. | Esta medida cobre uma configuração. A comparação PCM isolada precede mixer e FX. A avaliação musical no palco continua aberta. |
+| Ghost | O núcleo isolado do Ghost passa pelas oito comparações de PCM anteriores. No arranjo novo, HOLD recebe as notas da cena e o caminho de ida e volta. A frase guiada é uma escolha musical desta alpha. GRID é opcional por cidade. Em 120 s de HOLD, A menor, 132 BPM, com amostragem de pitch a cada 32 frames, STABLE passou 33,35% do tempo a mais de 25 cents de uma nota, GRID 2,40%. As 24 mudanças observadas em GRID ocorreram em mudança de slot. | Esta medida cobre uma configuração. A comparação PCM isolada precede mixer e FX. A avaliação musical no palco continua aberta. |
 | Vozes e EDIT | Duas serras polyBLEP e sub no BASS com filtros em cascata, drive, gate, glide e duck. PLUCK tem oito vozes, SPARKS seis, AMB usa root, fifth e mist além do drone manual. DRUMS tem 24 vozes de ruído e 12 osciladores. As seis páginas EDIT ligam quatro knobs e quatro seletores de tipo ao áudio. | Filtros, coeficientes, aleatoriedade, envelopes e agendamento em ponto fixo têm aproximações. As demais cinco vozes ainda não têm comparação PCM cobrindo todas as cidades e todas as edições. As curvas de kick e punch pedem A/B. |
 | Stage e mixer | Pan, filtro e pesos de três envios comparados com o HTML em 768 posições. A maior diferença foi 1,25 passo ou menos na escala de 127. O painel expõe medidores, calibração de knobs, solo e mudo momentâneos. | A comparação é dos controles projetados. Som estéreo final, resposta dos encoders e margem de processamento sob carga precisam de ensaio no FM-1. Pan e volume conservam a curva da stable. |
 | FX e dinâmica | Filtro DJ bipolar, phaser de quatro estágios, saturação, delay de três semicolcheias, reverb estéreo com oito combs e quatro all-pass por lado, compressor do synth bus, compressor e limitador na saída. Os testes exercitam seis camadas com os quatro FX em máximo. | O tempo do primeiro eco e o pico do teste estão verificados em host. A bateria e o LEAD conservam caminho a 44,1 kHz. O barramento de FX e parte das vozes usam 11,025 kHz com interpolação. A proteção de carga pode retirar o reverb. A soma de envios por origem, o ganho de saída e a cauda ainda precisam de comparação de PCM estéreo com a stable. |
@@ -15,13 +15,16 @@ Referência funcional e musical em `stable-v0.5.html` da 0.5.5-beta, SHA-256 `50
 
 ## Orçamento de áudio
 
-Emulador FM-1 a 100 MHz (revisão `736aded65c8e2e9d652cf595fca248734483a877`), Búzios, LCD temporizado. Cada linha acrescenta uma camada. Janela de quatro segundos após estabilização. Prazo por bloco de 5805 µs.
+Emulador FM-1 a 100 MHz (revisão `736aded65c8e2e9d652cf595fca248734483a877`), Búzios, LCD temporizado. As seis primeiras linhas acrescentam camadas na INTRO. As três últimas mudam a cena com as seis camadas ligadas. Janela de quatro segundos após estabilização. Prazo por bloco de 5805 µs.
 
 | Camadas | Pico em µs | Blocos | Atrasos |
 | --- | ---: | ---: | ---: |
-| DRUMS | 3885 | 690 | 0 |
-| DRUMS+BASS | 4170 | 690 | 0 |
-| +AMB | 4060 | 690 | 0 |
-| +PLUCK | 4603 | 689 | 0 |
-| +LEAD | 4773 | 689 | 0 |
-| SEIS | 5070 | 689 | 0 |
+| DRUMS | 3888 | 690 | 0 |
+| DRUMS+BASS | 4173 | 690 | 0 |
+| +AMB | 4063 | 690 | 0 |
+| +PLUCK | 4606 | 689 | 0 |
+| +LEAD | 4775 | 689 | 0 |
+| SEIS | 5071 | 689 | 0 |
+| GROOVE | 4683 | 690 | 0 |
+| TENSION | 4125 | 689 | 0 |
+| PEAK | 5092 | 690 | 0 |

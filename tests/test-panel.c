@@ -54,6 +54,30 @@ int main(void){
     panel_defaults();groove_publish();
     page=PAGE_HOME;selected_layer=1;qa_ready_mask=63;
 
+    /* Switch and revisit scenes via the keyboard and the same encoder as HOME. */
+    assert(city_ghost_grid[0]);
+    panel_key(3);assert(layer_variation[0][1]==1);
+    enc[ENC_ALGORITHM]=3;panel_scan_knobs();
+    selected_layer=3;enc[ENC_ALGORITHM]=2;panel_scan_knobs();
+    panel_key(5);assert(layer_variation[0][1]==3 && layer_variation[0][3]==2);
+    panel_key(8);assert(layer_variation[0][1]==2);
+    uint8_t saved[GROOVE_RECORD];groove_encode(saved);
+    memset(scene_variation,0,sizeof scene_variation);
+    assert(groove_decode(saved,sizeof saved,true));
+    panel_key(3);assert(layer_variation[0][1]==4 && layer_variation[0][3]==2);
+    page=PAGE_EDIT;press(BTN_REC);release(BTN_REC);assert(!city_ghost_grid[0]);
+    panel_key(1);assert(!city_ghost_grid[0]);
+    page=PAGE_HOME;selected_layer=1;
+    for(unsigned scene=0;scene<4;++scene){
+        int previous=-1;bool up=false,down=false;
+        for(unsigned step=0;step<64;++step){
+            int note=scene_lead_note(0,scene,scene_defaults[scene][1],step,true);
+            if(previous>=0){up|=note>previous;down|=note<previous;}
+            previous=note;
+        }
+        assert(up && down);
+    }
+
     /* ARP has no function. */
     press(BTN_ARP);assert(qa_ready_mask==63 && selected_layer==1);
 
@@ -150,6 +174,23 @@ int main(void){
     groove_audio(block,256,false);
     assert(!audio_lite);
 
+    /* Exercise both synth targets on the audio path at real sequencer steps. */
+    active_city=0;panel_reset_city(0);qa_source=1;qa_running=1;
+    groove_enabled=GROOVE_BASS|GROOVE_LEAD;
+    for(unsigned scene=0;scene<4;++scene){
+        select_scene(0,scene);groove_publish();qa_ticks=0;++qa_start_serial;
+        uint32_t first_bass=0;int last_lead=0;
+        bool bass_changed=false,up=false,down=false;
+        for(unsigned tick=1;tick<=128;++tick){
+            qa_ticks=tick;memset(block,0,sizeof block);groove_audio(block,256,false);
+            if(tick==1)first_bass=acid.goal_inc;
+            bass_changed|=acid.goal_inc!=first_bass;
+            if(last_lead){up|=lead_ghost.target_pitch>last_lead;down|=lead_ghost.target_pitch<last_lead;}
+            last_lead=lead_ghost.target_pitch;
+        }
+        assert(bass_changed && up && down);
+    }
+    puts("BASS e LEAD HOLD: movimento de pitch confirmado nas quatro cenas");
     /* Every page renders with the stubbed canvas. */
     for(page=PAGE_HOME;page<=PAGE_MIX;++page){panel_notice=0;panel_dirty=true;panel_render();}
     puts("panel: ARP, EDIT layer walk, solo/mute hold, knob feel, SAVE scope, SEQ step edit OK");
