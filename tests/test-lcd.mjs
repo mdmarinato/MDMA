@@ -112,6 +112,9 @@ assert.notDeepEqual(sceneRows(), homeRows, 'Stage Map não abriu');
 assert.deepEqual(mixer(), dry, 'Stage Map não manteve os cartões');
 capture('stage');
 tap(8);
+assert.notDeepEqual(sceneRows(),homeRows,'MIXER não abriu');
+capture('mixer');
+tap(8);
 shortEdit();
 const edit = box(60, 80);
 capture('edit');
@@ -162,7 +165,7 @@ assert.equal(x.fm1_flash_busy(), 0);
 assert(x.fm1_flash_revision() > revision, 'SAVE não gravou');
 assert.deepEqual(box(52,135), save, 'SAVE ficou preso na tela de gravação');
 const sectors = new Uint8Array(x.memory.buffer, x.fm1_flash() + 0xB1000, 8192);
-assert(Buffer.from(sectors).includes(Buffer.from('MGR5')));
+assert(Buffer.from(sectors).includes(Buffer.from('MGR6')));
 const restore = Buffer.alloc(2 * (4096 + 4));
 for (let i = 0; i < 2; i++) {
   const index = i * (4096 + 4);
@@ -194,7 +197,12 @@ shortEdit();
 
 tap(12);
 assert(level(0.5) > 0.001, 'PLAY sem áudio');
-assert(area(171, 68, 55, 6).some(p => p === pixel(76, 68)), 'medidor de DRUMS sem atividade');
+let meterLit=false;
+for(let frame=0;frame<32&&!meterLit;frame++){
+  level(.05);
+  meterLit=area(171,68,55,6).some(pixel=>pixel===((31<<11)|(34<<5)));
+}
+assert(meterLit,'medidor de DRUMS sem atividade em 1,6 segundos');
 tap(39);
 level(1.5);
 assert(level(0.3) < 0.0001, 'ALL LAYERS não silenciou');
@@ -253,7 +261,7 @@ tap(1);
 tap(1);
 level(2);
 const citySectors = new Uint8Array(x.memory.buffer, x.fm1_flash() + 0xB1000, 8192).slice();
-const savedEight = Buffer.from(citySectors).indexOf(Buffer.from([0x4d,0x47,0x52,0x35,7,8]));
+const savedEight = Buffer.from(citySectors).indexOf(Buffer.from([0x4d,0x47,0x52,0x36,7,8]));
 assert(savedEight >= 0, 'registro com oito cidades não foi gravado');
 for (let i = 0; i < 2; i++)
   restore.set(citySectors.subarray(i * 4096, (i + 1) * 4096), i * (4096 + 4) + 4);
@@ -291,3 +299,18 @@ for (const key of [24, 27, 29, 31, 34, 36]) {
   shortEdit();
 }
 console.log('EDIT abre na camada selecionada nas seis camadas.');
+
+boot();level(2);
+tap(8);tap(8);
+const strips=box(58,143);
+tap(13);assert.notDeepEqual(box(58,143),strips,'REC não abriu calibração');
+const zeroCounts=box(102,98);turn(2,4);
+assert.notDeepEqual(box(102,98),zeroCounts,'calibração não contou detentes');
+tap(13);tap(8);tap(11);
+const initialStep=pixel(50,84);
+x.fm1_key(14,1);level(.4);const neutralShape=box(218,18);turn(2,2);
+assert.notDeepEqual(box(218,18),neutralShape,'VEL não mudou no passo segurado');
+x.fm1_key(14,0);level(.25);assert.equal(pixel(50,84),initialStep,'segurar trocou o hit');
+turn(2,1);const draftReady=box(219,18);turn(3,1);assert.notDeepEqual(box(219,18),draftReady,'prévia não entrou');
+turn(4,1);assert.notDeepEqual(box(219,18),draftReady,'rascunho ficou ativo depois de aplicar');
+console.log('Calibração, edição de passo segurado, geração, prévia e aplicação no painel passaram.');

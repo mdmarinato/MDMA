@@ -1,58 +1,36 @@
-# MDMA 0.5.5-alpha · Ghost e cidades
+# MDMA 0.5.5-alpha-stage para o FM-1
 
-Atualização da alpha com LCD para FM-1. A referência é
-[`stable-v0.5.html`](reference/stable-v0.5.html) da 0.5.5-beta.
+[Baixar o ZIP desta versão](https://github.com/mdmarinato/MDMA/raw/refs/tags/v0.5.5-alpha-stage/MDMA-0.5.5-alpha-stage.zip). Extraia e use o arquivo em `build/MDMA-0.5.5-alpha-stage.fwsc` com o instalador que você usou na alpha anterior.
 
-- [FWSC](build/MDMA-0.5.5-alpha-ghost.fwsc), [mapa](build/MDMA-0.5.5-alpha-ghost.map) e [checksums](SHA256SUMS).
-- [Patch cumulativo](firmware/MDMA-0.5.5-alpha-ghost.patch), [testes](tests/) e [conferência de paridade](PARIDADE.md).
+A referência é a stable HTML da 0.5.5-beta. [Conferência por função](PARIDADE.md) · [Checksums](SHA256SUMS) · [Referência HTML](reference/stable-v0.5.html).
 
-## Controles
+## Tocar e editar
 
-No GLO, SELECT escolhe a linha. ALGORITHM ou OCT+/− ajustam BPM RELEASE,
-SWING, BASS MODE, LEAD MODE e CLOCK. BASS MODE alterna HOLD e ALIEN.
-Em GENERATE RANDOM CITY, DELETE CURRENT CITY ou FACTORY RESET,
-OCT+ abre e confirma. OCT− cancela. PRESETS percorre as cidades.
-É possível ter cinco cidades criadas junto das três de fábrica.
+- HOME percorre a lista de camadas, o Stage Map e o mixer de seis tiras. No Stage, o movimento afeta pan, filtro e envios. No mixer, segure LFO para solo ou ENV para mudo da camada selecionada. Solte para voltar à mixagem.
+- Em HOME, FX, Stage e mixer, giros rápidos aceleram os controles. Um giro forte acrescenta quatro pequenos passos de inércia em 200 ms. O áudio suaviza as mudanças em cerca de 12 ms. No mixer, REC abre o contador de encoders. Dê uma volta completa em cada knob para ler os cliques e o pico por leitura. REC volta ao mixer.
+- EDIT abre quatro parâmetros da camada selecionada. KNOB1–4 ajustam valores, SELECT escolhe a linha e ALGORITHM altera o tipo. No EDIT do LEAD, REC alterna STABLE e GRID por cidade. GRID aproxima o glide de 50 ms no centro, restringe a faixa e ancora o Ghost HOLD à grade. A frase de ALIEN continua própria. GLO mantém BASS MODE e LEAD MODE separados.
+- Na HOME, as teclas brancas tocam a camada selecionada. DRUMS distribui seis peças, PLUCK e SPARKS disparam notas e BASS, AMB e LEAD sustentam a tecla. No MIDI, os canais 1–6 seguem DRUMS, BASS, PLUCK, LEAD, AMB e SPARKS.
+- No SEQ de DRUMS, SELECT escolhe a peça. Um toque curto alterna o passo. Segure por 275 ms e use KNOB1–4 para VEL, TIME, ATK e REL. Há espaço para **16 passos com parâmetros modificados** no conjunto de cidades. Levar os quatro valores ao centro libera uma posição. Sem tecla segurada, KNOB1 cria um rascunho, KNOB2 positivo ouve a prévia e KNOB3 positivo aplica. Giro negativo de KNOB2 ou KNOB3 descarta.
+- PRESETS percorre cidades. Segure EDIT na HOME e gire PRESETS para trocar a origem da camada. GLO permite criar até cinco cidades além das três de fábrica.
 
-EDIT abre os controles disponíveis na camada selecionada. No LEAD,
-KNOB1–4 ajustam CUTOFF, RES, GLIDE e GHOST RATE. SELECT escolhe a linha
-e ALGORITHM alterna o tipo. Para trocar a origem de uma camada, segure
-EDIT na HOME e gire PRESETS.
+## SAVE e backup
 
-## SAVE
+O autosave exige **33 segundos consecutivos de silêncio** e dados alterados. Transporte, notas e atividade de áudio reiniciam a contagem. A rotina usa um limiar de três unidades de PCM de 16 bits para o ruído residual. SAVE manual continua disponível.
 
-O SAVE grava MGR5 no par A/B em 0xB1000. O porte lê os registros anteriores
-MGR1–MGR4 e preserva os dados detectados no aparelho. Firmwares anteriores
-podem precisar da cópia legada para ler o SAVE depois de atualizar.
-O teste no emulador gravou e recuperou oito cidades após reiniciar.
+Em SAVE, use SELECT para escolher o aparelho inteiro ou um dos quatro pontos de retorno. Nos pontos, ALGORITHM escolhe salvar, carregar ou apagar. OCT+ abre a confirmação e confirma, OCT− cancela. Cada ponto carrega a cidade guardada e conserva as demais. Dados estranhos no setor físico bloqueiam sua reutilização.
+
+A ferramenta em `backup/index.html` transfere cidades por USB MIDI SysEx no Chrome ou Edge com permissão MIDI. Se o navegador exigir uma origem local segura, abra o diretório do pacote com `python3 -m http.server 8000` e visite `http://localhost:8000/backup/`. O JSON contém o registro nativo MGR6 e seu CRC. O backup cobre as cidades atuais. Os quatro pontos possuem armazenamento separado. MGR1–MGR5 são lidos pelo firmware. A ferramenta de backup ainda requer conferência com o cabo e navegador reais.
 
 ## Reproduzir
 
-Use [Dinghy](https://github.com/zvenson/dinghy) em
-`ea1b6bf5973b11f9b4b806d08155602aaa0b505e`, JieLi Linux 20260730.1
-e o SDK AC79NN em `d179b4484759423312073f5fbb232501aa491047`.
-O build verifica os arquivos `uboot.boot`, `cfg_tool.bin` e
-`cfg/eq_cfg_hw.bin` em `cpu/wl82/tools` do SDK.
-
-Com `ALPHA` apontando para este pacote, a partir do repositório Dinghy:
+Aplique o patch no Dinghy `ea1b6bf5973b11f9b4b806d08155602aaa0b505e`. Use o toolchain JieLi Linux 20260730.1 e os binários do SDK AC79NN `d179b4484759423312073f5fbb232501aa491047`. No diretório Dinghy, com ALPHA apontando para este pacote, execute
 
 ```sh
-git apply "$ALPHA/firmware/MDMA-0.5.5-alpha-ghost.patch"
+git apply "$ALPHA/firmware/MDMA-0.5.5-alpha-stage.patch"
 node tools/mdma_patterns.cjs "$ALPHA/reference/stable-v0.5.html"
 python3 tools/mdma_lead_tables.py
-JIELI_TOOLCHAIN=/caminho/toolchain AC79_SDK=/caminho/sdk ./build.sh --release 0.5.5-ghost
-cmp build/mdma-0.5.5-ghost.fwsc "$ALPHA/build/MDMA-0.5.5-alpha-ghost.fwsc"
-node "$ALPHA/tests/pattern-reference.cjs" "$ALPHA/reference/stable-v0.5.html" firmware/src
-cc -O2 -std=c11 -Ifirmware/src "$ALPHA/tests/lead-reference.c" -o /tmp/mdma-lead
-for city in 0 1 2; do
-  node "$ALPHA/tests/lead-reference.cjs" "$ALPHA/reference/stable-v0.5.html" /tmp/mdma-lead "$city"
-done
-for mode in alien offset sync band linear; do
-  node "$ALPHA/tests/lead-reference.cjs" "$ALPHA/reference/stable-v0.5.html" /tmp/mdma-lead 0 "$mode"
-done
-cc -O2 -std=c11 -Ifirmware/src "$ALPHA/tests/test-integration.c" -o /tmp/mdma-integration
-/tmp/mdma-integration
-cc -O2 -Ifirmware/hal -Ifirmware/src -Ifirmware/gen "$ALPHA/tests/test-midi.c" -o /tmp/mdma-midi
-/tmp/mdma-midi
-node "$ALPHA/tests/test-lcd.mjs" /caminho/fm1-emu/web/dist build/mdma-0.5.5-ghost.fwsc
+python3 tools/mdma_mix_tables.py
+JIELI_TOOLCHAIN=/caminho/toolchain AC79_SDK=/caminho/sdk ./build.sh --release 0.5.5-stage
+cmp build/mdma-0.5.5-stage.fwsc "$ALPHA/build/MDMA-0.5.5-alpha-stage.fwsc"
+sh "$ALPHA/tests/run-all.sh" /caminho/fm1-emu/web/dist
 ```
