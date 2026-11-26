@@ -16,7 +16,7 @@ cea1a1ccc45061759842e9d730f1b9a282d7e7daf7fdc6d070ec36d77f9f2254  ./tests/audio-
 728ad5f3137a5d739eb42d1d6596fac4d84cc252280131fa00920730ae7bf2db  ./tests/lead-reference.cjs
 7e4a80238414f9dbaab9cd2d0ef7957d60b01d0b082b565e3b2c361236fe77f8  ./tests/pattern-reference.cjs
 8d3dddb7cad875e243d80a81491a7a18bf4fa0abd669bd00437d3f0d6bc82676  ./tests/previous-point-and-fill.mjs
-7d408176e35b1aa209229db753d14181c3be070a0e76844942a44564a8d29829  ./tests/run-all.sh
+d0e5010bbe5d101d88d8df7d347f1c5d669ce7281f6d207049e7be813431b6e3  ./tests/run-all.sh
 0c14834aa55d833f9d0551d4af1c801bcbf9fbd6ef92f8d7ef61bcc3a03df83c  ./tests/stage-reference.c
 0d872b69ead06131592bc5d7cb61eed770eb68a7458b8a6e35af4fe1e3c20e7e  ./tests/stage-reference.cjs
 2a886110a633820dba469d1f80bcf30a188ee74b113a23f99bdfa86ea40e637f  ./tests/test-controls.c

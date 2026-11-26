@@ -22,7 +22,9 @@ for mode in alien offset sync band linear; do node "$package/tests/lead-referenc
 cc -O1 -std=gnu11 -fsanitize=undefined,address -fno-sanitize-recover -Ifirmware/src "$package/tests/test-eq.c" -lm -o "$tmp/eq"
 "$tmp/eq"
 if [ "$#" -gt 0 ]; then
-  fw="$package/build/MDMA-0.5.6-alpha.fwsc"
+  # These LCD and audio fixtures exercise the historical alpha build.
+  fw="$tmp/MDMA-0.5.6-alpha.fwsc"
+  git -C "$package" show v0.5.6-alpha:build/MDMA-0.5.6-alpha.fwsc > "$fw"
   node "$package/tests/test-lcd.mjs" "$1" "$fw"
   node "$package/tests/audio-budget-eq.mjs" "$1" "$fw"
 fi
