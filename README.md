@@ -2,7 +2,7 @@
 
 Firmware para o sintetizador M-VAVE FM-1. O pacote de distribuição inclui o firmware instalável em `build/MDMA-0.5.6-alpha.fwsc`, os patches de código, a ferramenta de backup e os testes.
 
-[Baixar o pacote ZIP da versão 0.5.6-alpha](https://github.com/mdmarinato/MDMA/releases/download/v0.5.6-alpha/MDMA-0.5.6-alpha.zip) · [Notas da versão e firmware avulso](https://github.com/mdmarinato/MDMA/releases/tag/v0.5.6-alpha)
+[Baixar o pacote ZIP da versão 0.5.6-alpha](https://github.com/mdmarinato/MDMA/raw/refs/heads/main/downloads/v0.5.6-alpha/MDMA-0.5.6-alpha.zip) · [Notas da versão e firmware avulso](https://github.com/mdmarinato/MDMA/releases/tag/v0.5.6-alpha)
 
 ## Controles ao tocar
 
