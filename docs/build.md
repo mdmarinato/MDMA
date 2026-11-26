@@ -14,3 +14,7 @@ echo "0280b53a0056bbd507e408e438ec7ee8e4415a3d16ce5a5d48dcd533448bacf5  build/md
 cc -O1 -std=gnu11 -Ifirmware/src "$PKG/firmware/tests/test-controls.c" -lm -o /tmp/mdma-test-controls
 /tmp/mdma-test-controls
 ```
+
+## Next development build
+
+After applying the official patch above, apply `git apply "$PKG/firmware/usb-identity.patch"` in the Dinghy checkout before building. Run the build without a release label for a local development package. On FM-1 the application advertises the USB product name **MDMA FM-1** and reports **FM-1_63620001** to the updater. The update loader retains its existing recovery identity. The official 0.5.6-controls binary uses **FM-1_975**.

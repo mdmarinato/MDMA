@@ -1,0 +1,29 @@
+diff --git a/firmware/src/usb.c b/firmware/src/usb.c
+index c08b00c..471142b 100644
+--- a/firmware/src/usb.c
++++ b/firmware/src/usb.c
+@@ -273,7 +273,11 @@ static const uint8_t STR1[] = {42, 3, 'H', 0, 0xFC, 0, 'g', 0, 'e', 0, 'l', 0, '
+ static const uint8_t STR2[] = {30, 3, 'F', 0, 'e', 0, 'l', 0, 'u', 0, 'c', 0, 'c', 0, 'a', 0, ' ', 0, 'U', 0, 'p', 0,
+                                'd', 0, 'a', 0, 't', 0, 'e', 0};
+ #else
++#if BOARD_SMK37
+ static const uint8_t STR2[] = {16, 3, 'F', 0, 'e', 0, 'l', 0, 'u', 0, 'c', 0, 'c', 0, 'a', 0};
++#else
++static const uint8_t STR2[] = {20, 3, 'M', 0, 'D', 0, 'M', 0, 'A', 0, ' ', 0, 'F', 0, 'M', 0, '-', 0, '1', 0};
++#endif
+ #endif
+ 
+ static int get_desc(uint32_t wvalue, const uint8_t **d, uint16_t *l)
+diff --git a/tools/build.py b/tools/build.py
+index 03f413d..27c2108 100644
+--- a/tools/build.py
++++ b/tools/build.py
+@@ -327,6 +327,8 @@ def main():
+         PRODUCT = BOARD_PREFIX[BOARD] + m[2]
+         VERSION = m[1] + "." + m[2] + (m[3] or "")
+         name = f"mdma-{a.release}{suffix}.fwsc"
++    if BOARD == "fm1":
++        PRODUCT = "FM-1_63620001"
+     fm1pkg_make.SDK = a.sdk
+     for rel, sha in SDK_SHA256.items():          # fail early without the SDK
+         if hashlib.sha256(fm1pkg_make.sdk_file(rel)).hexdigest() != sha:
