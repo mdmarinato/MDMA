@@ -1,10 +1,15 @@
 b3a56b2fc95aa449beca96e08463ea07b6f0fb0aa1310e1fee611266ad7c8cac  ./LICENSE
-e3449d074557635fa61407b0dac954af1a5154b5734fd708ba38f7b562bbb559  ./README.md
+0d1910360b764f857ec1d85f73d846dfb44a93460329b91d5d4e98b58ed221fd  ./README.md
 d143a5b09c080c1d50acbfcf0ec8e522433425dd216cd4534aee383a5c283fbb  ./backup/index.html
 2735cb330013b12b47ce119bb25087d3eccbab8337b50d9afff3c2ca22c3b78d  ./build/MDMA-0.5.6-alpha.fwsc
+0280b53a0056bbd507e408e438ec7ee8e4415a3d16ce5a5d48dcd533448bacf5  ./build/mdma-0.5.6-controls.fwsc
 e107e37c8475ea8e4532355b23c4b371e138e748d83eed76822debc01a73e50a  ./build/mdma.map
+fbbbb86558c44f9807d390faddc08d8ca4ccff534d4e5854c2fdca50e323edc8  ./downloads/v0.5.6-alpha/MDMA-0.5.6-alpha.zip
+a8f2fb2a932dae2c48848ad3507de3238186826f12ee65d3103313f73043dec0  ./downloads/v0.5.6-alpha/SHA256SUMS.txt
+c25f45f0db7bf21e48b997bb09de49c9665c3f0ed5e16712c514e19f8f656b1d  ./downloads/v0.5.6-controls/MDMA-0.5.6-controls.zip
 65dd9820b8b47c9332cca74a3f940037349075c5926b8ab35ea33ab74181fae9  ./firmware/0.5.6-alpha.patch
 f716c9269d9ef113e42bcd6a91e633cea1b87a9407cb5945cb30c60b76362628  ./firmware/MDMA-0.5.5-alpha-live.patch
+b926f6f875cadc28e1dc3ee03a34f54c110ac52a3723c28d29a95952ac78d64f  ./firmware/controls.patch
 50302022da4ab83527823f9576983529f08755178d080cee3c15a184e6f83d3c  ./reference/stable-v0.5.html
 ed061c54cb0cc2e4a8bda66e8ea01f8b8ff5f7ad029b83218c35e359c41d7d21  ./tests/audio-budget-eq.mjs
 cea1a1ccc45061759842e9d730f1b9a282d7e7daf7fdc6d070ec36d77f9f2254  ./tests/audio-budget.mjs
@@ -16,6 +21,7 @@ cea1a1ccc45061759842e9d730f1b9a282d7e7daf7fdc6d070ec36d77f9f2254  ./tests/audio-
 7d408176e35b1aa209229db753d14181c3be070a0e76844942a44564a8d29829  ./tests/run-all.sh
 0c14834aa55d833f9d0551d4af1c801bcbf9fbd6ef92f8d7ef61bcc3a03df83c  ./tests/stage-reference.c
 0d872b69ead06131592bc5d7cb61eed770eb68a7458b8a6e35af4fe1e3c20e7e  ./tests/stage-reference.cjs
+2a886110a633820dba469d1f80bcf30a188ee74b113a23f99bdfa86ea40e637f  ./tests/test-controls.c
 ba5eb449e6c0a7ab91f06051afb92c8c2984ba8a456c7949c1a5e6ba05a20a49  ./tests/test-eq.c
 8c147424e39e38b654fb54176433c70049c6ec7277baf656e284369880d95c6f  ./tests/test-integration.c
 5054f5db717b1a9e8b79a13355b169e326c6fe207e019047d41b5221d884ea07  ./tests/test-lcd.mjs
