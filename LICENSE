@@ -1,0 +1,291 @@
+GNU GENERAL PUBLIC LICENSE
+                       Version 3, 29 June 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+                            Preamble
+
+  The GNU General Public License is a free, copyleft license for
+software and other kinds of works.
+
+  The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works.  By contrast,
+the GNU General Public License is intended to guarantee your freedom to
+share and change all versions of a program--to make sure it remains free
+software for all its users.  We, the Free Software Foundation, use the
+GNU General Public License for most of our software; it applies also to
+any other work released this way by its authors.  You can apply it to
+your programs, too.
+
+  When we speak of free software, we are referring to freedom, not
+price.  Our General Public Licenses are designed to make sure that you
+have the freedom to distribute copies of all versions of a program
+(whether gratis or for a fee), that you receive source code or can get
+it if you want it, that you can change the software or use pieces of it
+in new free programs, and that you know you can do these things.
+
+  To protect your rights, we need to prevent others from denying you
+these rights or asking you to surrender the rights.  Therefore, you have
+certain responsibilities if you distribute copies of the software, or if
+you modify it: responsibilities to respect the freedom of others.
+
+  For example, if you distribute copies of such a program, whether
+gratis or for a fee, you must pass on to the recipients the same
+freedoms that you received.  You must make sure that they, too, receive
+or can get the source code.  And you must show them these terms so they
+know their rights.
+
+  Developers that use the GNU General Public License protect your rights
+with two steps: (1) assert copyright on the software, and (2) offer
+you this License giving you permission to copy, distribute and/or
+modify the software.
+
+  For the developers and authors of the GNU General Public License,
+the following paragraphs explain why this License protects your
+freedom in the way it does.
+
+  For a program to be free software, the users must have the freedom
+to run, study, share and modify the program.  The precise terms
+corresponding to these freedoms are:
+
+  0. This License applies to any program or other work which contains
+  a notice placed by the copyright holder saying that it may be
+  distributed under the terms of this General Public License.  The
+  "Program", below, refers to any such program or work, and a "work
+  based on the Program" means either the Program or any derivative
+  work under copyright law: that is to say, a work containing the
+  Program or a portion of it, either verbatim or with modifications
+  and/or translated into another language.  (Hereinafter, translation
+  is included without limitation in the meaning of "modification".)
+  Each licensee is addressed as "you".  "Licensees" and "recipients"
+  may be individuals or organizations.
+
+  1. You may copy and distribute verbatim copies of the Program's
+  source code as you receive it, in any medium, provided that you
+  conspicuously and appropriately display on each copy an appropriate
+  copyright notice; keep intact all notices stating that this License
+  and any non-permissive terms added by the copyright holder apply to
+  the code; keep intact all notices that refer to this License and to
+  the absence of any warranty; and give all other recipients a copy of
+  this License along with the Program.
+
+  2. You may modify your copy or copies of the Program or any portion
+  of it, thus forming a work based on the Program, and copy and
+  distribute such modifications under the terms of Section 1 above,
+  provided that you also meet all of these conditions:
+
+    a) The modified work must carry prominent notices stating that you
+    modified it and giving a relevant date.
+
+    b) The modified work must carry prominent notices stating that it
+    is released under this License and any conditions imposed under
+    Section 7.  This requirement modifies the condition in Section 4
+    to "keep intact all notices".
+
+    c) You must license the entire work, as a whole, under this
+    License to anyone who comes into possession of your copy.  This
+    License will therefore apply, along with any applicable
+    section 7 additional terms, to the whole of the work, and all its
+    parts, regardless of how they are packaged.  This License gives
+    no permission to license the work in any other way, but it does
+    not invalidate such permission if you have separately received
+    it.
+
+    d) If the work has interactive user interfaces, each must display
+    Appropriate Legal Notices; however, if the Program has interactive
+    interfaces that do not display Appropriate Legal Notices, your
+    work need not make them do so.
+
+  3. You may copy and distribute the Program in object code form
+  under the terms of Sections 1 and 2 above provided that you also
+  do each of the following:
+
+    a) You must convey the object code in, or embodied in, a physical
+    product (including a physical distribution medium), accompanied
+    by a written offer, valid for at least three years and valid for
+    as long as you offer spare parts or customer service for that
+    product, to give anyone who possesses the object code either a
+    copy of the corresponding source code for all the software in the
+    product that is covered by this License, on a durable physical
+    medium customarily used for software interchange, for a price no
+    more than your reasonable cost of performing this conveyance, or
+    access to copy the corresponding source code from a network
+    server at no charge.
+
+    b) You must convey the object code in, or embodied in, a physical
+    product (including a physical distribution medium), accompanied
+    by a written offer, valid for at least three years and valid for
+    as long as you offer spare parts or customer service for that
+    product, to give anyone who possesses the object code either a
+    copy of the corresponding source code for all the software in the
+    product that is covered by this License, on a durable physical
+    medium customarily used for software interchange, for a price no
+    more than your reasonable cost of performing this conveyance, or
+    access to copy the corresponding source code from a network
+    server at no charge.
+
+    c) You may convey individual copies of the object code in, or
+    embodied in, a physical product (including a physical
+    distribution medium), accompanied by a copy of the corresponding
+    source code, as allowed under section 3a.
+
+    d) You may convey the object code by offering access to copy
+    from a network server at no charge, and, if it's embodied in a
+    physical product, accompany the offer with written information
+    telling people how to access it, and inform them that they have
+    the opportunity to make a copy of the object code.
+
+    e) You may convey the object code using peer-to-peer networks,
+    provided you inform other peers where the object code and the
+    corresponding source code for all the software in the product is
+    available (for the product as a whole) or at a particular
+    designated place (for a part of the product).  If you use
+    non-advertising information to give other peers the opportunity
+    to make a copy of the object code, you must clearly state
+    where the object code and the corresponding source code can be
+    obtained, and you must inform them of the opportunity to make a
+    copy of the object code.  However, if you receive the object
+    code in a physical product, you may offer access to the
+    corresponding source code from a network server or at a
+    designated place, provided you include a copy of the corresponding
+    source code with your offer or provide the object code and the
+    corresponding source code on a durable physical medium
+    customarily used for software interchange, for a price no more
+    than your reasonable cost of performing this conveyance.  If the
+    object code is not embodied in a physical product, you may
+    distribute the object code by offering access to copy from a
+    network server at no charge, provided the corresponding source
+    code is available in the same way.
+
+  4. You may not propagate or modify a covered work except as
+  expressly provided under this License.  Any attempt otherwise to
+  propagate or modify it is void, and will automatically terminate
+  your rights under this License (including any patent licenses
+  granted under the third paragraph of Section 7).  However, if you
+  cease all violation of this License, then your license from a
+  particular copyright holder is reinstated (a) provisionally, unless
+  and until the copyright holder explicitly and finally terminates
+  your license, and (b) permanently, if the copyright holder fails
+  to notify you of the termination by a reasonable time after you
+  cease all violation.
+
+  5. You are not required to accept this License in order to receive
+  or run a copy of the Program.  Ancillary propagation of a covered
+  work does not require acceptance.  However, nothing other than
+  acceptance of this License gives you permission to propagate or
+  modify a covered work.  These actions constitute acceptance of
+  this License.
+
+  6. Each time you convey a covered work, the recipient automatically
+  receives a license from the original licensors, to run, modify and
+  propagate that work, subject to this License.  You are not
+  responsible for enforcing compliance by third parties with this
+  License.
+
+  7. "Additional permissions" are terms that supplement the terms of
+  this License by making additional exceptions from one or more of
+  its requirements.  Additional permissions that are applicable to the
+  entire Program shall be treated as though they were included in this
+  License, to the extent that they are valid under applicable law.
+  If additional permissions apply only to part of the Program, you
+  may use those permissions, but you must include a copy of those
+  permissions in the copies you make, and may modify them to the
+  extent permitted by the License.
+
+  8. If you convey a covered work, you may at the same time
+  remove any additional permissions from that copy, or from any
+  part of it.  (Additional permissions may be written to require
+  their own removal.)  If the License as a whole contains additional
+  permissions that are applicable to the entire Program, you may at
+  the same time remove those additional permissions from the copy
+  of the Program that is covered by this License, as long as the
+  License does not prohibit removing them.
+
+  9. Notwithstanding any other provision of this License, with
+  respect to material that is governed by copyright law, you may
+  (a) convey the covered work under the terms of any license of
+  your choice that permits you to use it, subject to this License,
+  or (b) make reasonable efforts to permit others to use the
+  program under the terms of any license of your choice that
+  permits such use, provided that you inform the recipients of
+  the license terms.  The warranty disclaimer in Section 10 and the
+  limited liability provisions in Section 11 still apply.
+
+  10. BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO
+  WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE
+  LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+  HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT
+  WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT
+  NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+  FITNESS FOR A PARTICULAR PURPOSE.  THE ENTIRE RISK AS TO THE
+  QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU.  SHOULD THE
+  PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY
+  SERVICES, REPAIRS, OR REPLACEMENTS.
+
+  11. IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN
+  WRITING WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES
+  AND/OR CONVEYS THE PROGRAM, BE LIABLE TO YOU FOR DAMAGES, INCLUDING
+  ANY GENERAL, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING
+  OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT
+  LIMITED TO LOSS OF DATA OR DATA BEING RENDERED UNUSEABLE), EVEN IF
+  SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
+  SUCH DAMAGES.
+
+  12. If the disclaimer of warranty and limitation of liability
+  provided in Sections 10 and 11 cannot be given in local law
+  because of what it is, the court may modify them in a way that
+  results in the terms of this License being consistent with local
+  law, while preserving the substance of the protections of
+  Sections 10 and 11.
+
+                     END OF TERMS AND CONDITIONS
+
+            How to Apply These Terms to Your New Programs
+
+  If you develop a new program, and you want it to be of the greatest
+possible use to the public, the best way to achieve this is to make it
+free software which everyone can redistribute and modify under these
+terms.
+
+  To do so, attach the following notices to the program.  It is
+safest to attach them to the beginning of each source file to most
+effectively state the exclusion of warranty; and each file should have
+at least the "copyright" line and a pointer to where the full notice
+is found.
+
+    FM-1 MDMA — Redesigned Controls Firmware
+    Copyright (C) 2024 mdmarinato
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Also add information on how to contact you by electronic and paper mail.
+
+  If the program does terminal interaction, make it output a short
+notice like this when it starts in an interactive mode:
+
+    FM-1 MDMA v1.0.0  Copyright (C) 2024 mdmarinato
+    This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
+    This is free software, and you are welcome to redistribute it
+    under certain conditions; type `show c' for details.
+
+The hypothetical commands `show w' and `show c' should show the appropriate
+parts of the General Public License.  Of course, your commands might
+be different; for a GUI interface, you would use a menu item or button.
+
+You should also get your employer (if you work as a developer) or school,
+if any, to sign a "disclaimer of warranty" for the program, if necessary.
+For more information on this, please refer to the GNU General Public License
+and the GNU Lesser General Public License.
