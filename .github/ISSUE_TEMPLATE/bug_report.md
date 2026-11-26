@@ -2,6 +2,7 @@
 name: Firmware bug
 about: Report unexpected behavior on the FM-1 or in the emulator
 title: ""
+labels: bug
 ---
 
 ## Setup
