@@ -1,9 +1,9 @@
-<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Backup MDMA FM-1</title>
+<!doctype html><html lang="en"><meta charset="utf-8"><title>MDMA FM-1 Backup</title>
 <style>body{font:1rem system-ui;max-width:42rem;margin:8vh auto;padding:1rem;background:#171b20;color:#f0f2ed}button,select,input{font:inherit;margin:.3rem;padding:.5rem}label{display:block;margin:1rem 0}output{display:block;margin:1rem 0}</style>
-<h1>Backup MDMA FM-1</h1>
-<p>Conecte o FM-1 por USB. Abra esta página no Chrome ou Edge e permita acesso a MIDI e SysEx. A restauração substitui as cidades do aparelho. Pare a reprodução antes de restaurar.</p>
-<button id="connect">Conectar MIDI</button><label>Entrada MIDI <select id="input"></select></label><label>Saída MIDI <select id="output"></select></label>
-<button id="save" disabled>Baixar cidades em JSON</button><label>Arquivo para restaurar <input id="file" type="file" accept=".json"></label><button id="load" disabled>Restaurar cidades no FM-1</button><output id="message" role="status"></output>
+<h1>MDMA FM-1 Backup</h1>
+<p>Connect the FM-1 via USB. Open this page in Chrome or Edge and allow MIDI and SysEx access. Restoring replaces the cities on the device. Stop playback before restoring.</p>
+<button id="connect">Connect MIDI</button><label>MIDI input <select id="input"></select></label><label>MIDI output <select id="output"></select></label>
+<button id="save" disabled>Download cities as JSON</button><label>Backup file <input id="file" type="file" accept=".json"></label><button id="load" disabled>Restore cities to FM-1</button><output id="message" role="status"></output>
 <script>
 const el=id=>document.getElementById(id),prefix=[125,77,68,77,65];
 let midi;
@@ -12,7 +12,7 @@ function ports(select,items){
 }
 el('connect').onclick=async()=>{
  try{midi=await navigator.requestMIDIAccess({sysex:true});ports(el('input'),midi.inputs.values());ports(el('output'),midi.outputs.values());
- const ok=midi.inputs.size && midi.outputs.size;el('save').disabled=el('load').disabled=!ok;el('message').textContent=ok?'Selecione as portas do FM-1.':'Nenhuma porta encontrada.';}
+ const ok=midi.inputs.size && midi.outputs.size;el('save').disabled=el('load').disabled=!ok;el('message').textContent=ok?'Select the FM-1 MIDI ports.':'No MIDI ports found.';}
  catch(e){el('message').textContent=e.message;}
 };
 function command(op,...payload){
@@ -21,9 +21,9 @@ function command(op,...payload){
    const done=()=>{clearTimeout(timer);input.removeEventListener('midimessage',receive)};
    const receive=({data})=>{
      if(data.length<11 || data[0]!==240 || !prefix.every((b,i)=>data[i+1]===b)||data[6]!==op)return;
-     done();data[7]===1?reject(Error('O aparelho recusou a operação. Confira o arquivo, o transporte e o SAVE.')):resolve(data);
+     done();data[7]===1?reject(Error('The device rejected the operation. Check the file, playback state and SAVE status.')):resolve(data);
    };
-   const timer=setTimeout(()=>{done();reject(Error('O FM-1 não respondeu. Confira as portas MIDI e a versão.'));},3000);
+   const timer=setTimeout(()=>{done();reject(Error('The FM-1 did not respond. Check the MIDI ports and firmware version.'));},3000);
    input.addEventListener('midimessage',receive);
    try{output.send([240,...prefix,op,...payload,247])}catch(e){done();reject(e)}
  });
@@ -34,27 +34,27 @@ async function transfer(restore){
  el('connect').disabled=el('save').disabled=el('load').disabled=true;
  try{
  if(restore){
-  const f=el('file').files[0];if(!f)throw Error('Escolha um backup.');
-  const obj=JSON.parse(await f.text());if(obj.format!=='mdma-native-mgr6')throw Error('Formato incompatível.');
+  const f=el('file').files[0];if(!f)throw Error('Choose a backup file.');
+  const obj=JSON.parse(await f.text());if(obj.format!=='mdma-native-mgr6')throw Error('Unsupported backup format.');
   const bytes=Uint8Array.from(atob(obj.data),s=>s.charCodeAt(0));
-  if(bytes.length!==obj.bytes || crc32(bytes)!==obj.crc32)throw Error('Arquivo de backup corrompido.');
-  if(!confirm('Substituir todas as cidades do FM-1 pelas deste arquivo?'))return;
+  if(bytes.length!==obj.bytes || crc32(bytes)!==obj.crc32)throw Error('The backup file is damaged.');
+  if(!confirm('Replace all cities on the FM-1 with the cities in this file?'))return;
   await command(3);
   for(let i=0;i<bytes.length;i+=64) await command(4,i&127,i>>7,...Array.from(bytes.slice(i,i+64)).flatMap(b=>[b&127,b>>7]));
   await command(5,...digits(obj.crc32));
   let busy=true;for(let i=0;i<120&&busy;i++){await new Promise(r=>setTimeout(r,250));busy=(await command(6))[7]===2;}
-  if(busy)throw Error('O SAVE continua pendente no aparelho.');
+  if(busy)throw Error('The device is still saving.');
  }else{
   const start=await command(1),size=start[10]+start[11]*128,bytes=new Uint8Array(size);
   for(let i=0;i<size;i+=64){const packet=await command(2,i&127,i>>7);
-    if(packet[8]+128*packet[9]!==i || packet.length!==11+2*Math.min(64,size-i))throw Error('Bloco incompleto.');
+    if(packet[8]+128*packet[9]!==i || packet.length!==11+2*Math.min(64,size-i))throw Error('Incomplete data block.');
     for(let j=10;j<packet.length-1;j+=2)bytes[i+(j-10)/2]=packet[j]+128*packet[j+1];}
-  const checksum=crc32(bytes);if(!digits(checksum).every((b,i)=>b===start[12+i]))throw Error('Checksum inválido.');
+  const checksum=crc32(bytes);if(!digits(checksum).every((b,i)=>b===start[12+i]))throw Error('Invalid checksum.');
   const obj={format:'mdma-native-mgr6',bytes:size,crc32:checksum,data:btoa(String.fromCharCode(...bytes))};
   const url=URL.createObjectURL(new Blob([JSON.stringify(obj)],{type:'application/json'}));
-  const a=document.createElement('a');a.href=url;a.download='MDMA-cidades.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const a=document.createElement('a');a.href=url;a.download='MDMA-cities.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  }
- el('message').textContent=restore?'Cidades restauradas.':'Backup baixado.';
+ el('message').textContent=restore?'Cities restored.':'Backup downloaded.';
  }catch(e){el('message').textContent=e.message}finally{el('connect').disabled=el('save').disabled=el('load').disabled=false}
 }
 el('save').onclick=()=>transfer(false);el('load').onclick=()=>transfer(true);
