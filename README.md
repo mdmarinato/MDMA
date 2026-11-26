@@ -6,8 +6,8 @@ Performance firmware with six layers, four scenes per city and a 16-step drum se
 
 Extract the ZIP and use `mdma-0.5.6-controls.fwsc` for the FM-1.
 
-[Controls guide](docs/controls.md) · [Build and test](docs/build.md) · [Release notes](https://github.com/mdmarinato/MDMA/releases/tag/v0.5.6-controls)
+[Controls guide](docs/controls.md) · [City backup tool](docs/backup.html) · [Build and test](docs/build.md) · [Release notes](https://github.com/mdmarinato/MDMA/releases/tag/v0.5.6-controls)
 
 ## Support and contributions
 
-Ask setup and performance questions in [Discussions](https://github.com/mdmarinato/MDMA/discussions). To report unexpected firmware behavior, [open a bug report](https://github.com/mdmarinato/MDMA/issues/new?template=bug_report.md). See the [contribution guide](CONTRIBUTING.md) for development and testing conventions.
+Ask setup and performance questions in [Discussions](https://github.com/mdmarinato/MDMA/discussions). To report unexpected firmware behavior, [open a bug report](https://github.com/mdmarinato/MDMA/issues/new?template=bug_report.md). See the [contribution guide](.github/CONTRIBUTING.md) for development and testing conventions.

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 package=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-ref="$package/reference/stable-v0.5.html"
+ref="$package/stable-v0.5.html"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 node "$package/tests/pattern-reference.cjs" "$ref" firmware/src

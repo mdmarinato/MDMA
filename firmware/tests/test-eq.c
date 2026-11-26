@@ -86,5 +86,5 @@ int main(void)
         }
         assert(output_energy>1.2*input_energy);
     }
-    puts("EQ PCM, bancos, persistência, exclusão e reset por cidade/total: OK");
+    puts("EQ PCM, banks, persistence, deletion and city and global resets passed");
 }

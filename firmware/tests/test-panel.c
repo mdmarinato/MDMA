@@ -222,7 +222,7 @@ int main(void){
         assert((melody_midi_event[0]&127u)==(tick==3?0:48));
         assert((melody_midi_event[1]&127u)==(tick==3?0:72));
     }
-    puts("BASS e LEAD: 128 passos idênticos nas quatro cenas, nota MIDI, pausa e sustain");
+    puts("BASS and LEAD match across 128 steps in four scenes, including MIDI notes, rests and sustain");
     /* Every page renders with the stubbed canvas. */
     for(page=PAGE_HOME;page<=PAGE_MIX;++page){panel_notice=0;panel_dirty=true;panel_render();}
     puts("panel: ARP, EDIT layer walk, solo/mute hold, knob feel, SAVE scope, SEQ step edit OK");

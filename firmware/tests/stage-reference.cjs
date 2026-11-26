@@ -20,5 +20,5 @@ for(let i=0;i<rows.length;i++){
  const actual=[mix>>>8&127,mix>>>16&127,fx&127,fx>>>8&127,fx>>>16&127];
  stable.stageRef(names[l],l,Math.floor(i/6)).forEach((v,k)=>{worst=Math.max(worst,Math.abs(actual[k]-v))});
 }
-console.log('Stage Map, 768 posições; maior diferença em passos de controle:',worst);
+console.log('Stage Map maximum control-step difference across 768 positions:',worst);
 assert(worst<2);

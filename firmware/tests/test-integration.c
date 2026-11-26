@@ -208,7 +208,7 @@ int main(void){
     fm1_ms+=32999;groove_autosave();assert(!mdma_store_pending(&groove_store));
     ++fm1_ms;groove_autosave();assert(mdma_store_pending(&groove_store));service();
     fm1_ms+=33000;groove_autosave();assert(!mdma_store_pending(&groove_store));
-    puts("autosave: 32.999s, cauda, reinício do contador, 33.000s, sem gravação duplicada");
+    puts("Autosave timing passed at 32.999s and 33.000s, including tail, timer restart and duplicate-write checks");
     backup_command(1,0,0,0);assert(answer[7]==0 && (answer[10]+128u*answer[11])==GROOVE_RECORD);
     uint8_t copy[GROOVE_RECORD],crc[5];memcpy(crc,answer+12,5);
     for(unsigned at=0;at<GROOVE_RECORD;at+=64){
@@ -225,7 +225,7 @@ int main(void){
     crc[0]^=1;backup_command(5,0,crc,5);assert(answer[7]==1 && city_swing[active_city]==13);
     crc[0]^=1;backup_command(5,0,crc,5);assert(!answer[7] && city_swing[active_city]==12);
     service();backup_command(6,0,0,0);assert(!answer[7]);
-    puts("Backup USB: export, blocos, rejeição CRC e importação persistida passaram");
+    puts("USB backup export, block transfer, CRC rejection and persistent import passed");
     /* SAVE CURRENT CITY: only the active city is replaced in the stored main record. */
     {
         const unsigned c=active_city, o=c?0u:1u;
@@ -242,7 +242,7 @@ int main(void){
         assert(stored[8+c*GROOVE_CITY_BYTES]==111 && stored[8+o*GROOVE_CITY_BYTES]==old_other);
         assert(!memcmp(other_row,stored+8+o*GROOVE_CITY_BYTES,sizeof other_row));
         save_current_city=false;
-        puts("SAVE CURRENT CITY: só a cidade atual foi substituída no save principal");
+        puts("SAVE CURRENT CITY replaced only the selected city in the main save");
     }
     puts("groove: silence gate, per-city live controls, two saves, restart and fallback OK");
 }

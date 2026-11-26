@@ -50,7 +50,7 @@ for (let city = 0; city < groove.length; city++) {
         (_, layer) => generated
           ? reference.livePattern(scene, variation, layer)
           : reference.factory(scene, variation, [0, 2, 1][city], layer, reference.seed));
-      const label = `cidade ${city}, cena ${scene}, V${variation + 1}`;
+      const label = `city ${city}, scene ${scene}, V${variation + 1}`;
       assert.deepEqual(groove[city][scene][variation], [
         lanes.map(lane => bits(drums[lane])),
         bass.bass_notes.map((note, step) => note < 0 ? -1 : note + bass.bass_octave[step] * 12),
@@ -63,4 +63,4 @@ for (let city = 0; city < groove.length; city++) {
     }
   }
 }
-console.log(`${groove.length * 32} combinações cidade/cena/variação verificadas contra a stable-v0.5.`);
+console.log(`${groove.length * 32} city/scene/variation combinations matched stable-v0.5.`);

@@ -236,7 +236,7 @@ function applyKit(kitIndex) {
   // master/swing/bpm
   P.master = k.master;
   P.swing = k.swing;
-  /* bpm vem da UI, guardado por cidade (padrão 130) */
+  /* BPM comes from the UI and is stored per city (default 130) */
   applyMacros();
 }
 
@@ -2193,7 +2193,7 @@ function applyKit(kitIndex) {
     if(resume) E.cmd('play',true);
     return true;
   }
-  /* ---------- SAVE: pontos de retorno e backup de cidades (0.5.3) */
+  /* ---------- SAVE: return points and city backups (0.5.3) */
   const SAVE_SLOTS=4, BACKUP_FORMAT='MDMA-BACKUP', BACKUP_VERSION=1;
   let savePoints=[null,null,null,null], saveSerial=0, saveNote={text:'',n:0};
   const note=text=>{saveNote={text,n:saveNote.n+1};return false;};
@@ -2281,7 +2281,7 @@ function applyKit(kitIndex) {
     savePoints[slot]=null;
     return note('POINT DELETED'),true;
   }
-  /* Entra numa cidade pelo estado guardado; recria a cidade gerada se ela foi apagada. */
+  /* Load the saved city state and recreate a deleted generated city if needed. */
   function placeCity(identity,state){
     let id=identity.id;
     if(id>=3){
@@ -2409,7 +2409,7 @@ const persistentCommands=new Set([
 const kitName=()=>S.kitNames?.[S.kit] ?? 'BUZIOS';
 const cityName=()=>displayCityName(S.cityLabel??kitName());
 const ROWS=['kick','hat','open','clap','perc','noise'];
-/* ---------- estado da interface */
+/* ---------- interface state */
 let S={
   step:0, playing:false, bank:0, mode:2, bpm:132, key:0, master:1, kit:0,
   vari:Object.fromEntries(LN.map(layer=>[layer,0])),
@@ -2996,7 +2996,7 @@ addEventListener('keydown',e=>{if(!U.on||e.metaKey||e.ctrlKey||e.altKey||e.repea
  const bi=KB_B.indexOf(c);if(bi>=0){e.preventDefault();bkeys[bi].g.classList.add('lit');bottomDown(bi,'k'+c);return}
  const ti=KB_T.indexOf(c);if(ti>=0){e.preventDefault();topKey(ti)}});
 addEventListener('keyup',e=>{if(e.key==='0'){endSeqGesture('key');return}if(e.key==='5'){endEditGesture('key');return}if(e.key===';'||e.key==="'"){releaseTempo(e.key);return}const c=e.key.length==1?e.key.toUpperCase():e.key,bi=KB_B.indexOf(c);if(bi>=0){bkeys[bi].g.classList.remove('lit');bottomUp('k'+c)}});
-/* ---------- tela de 240x240 */
+/* ---------- 240x240 display */
 const ctx=scr.getContext('2d',{alpha:false});
 const LCD={left:8,right:232,width:224,title:16,value:11,label:10,detail:9,body:60,
  ink:'#FFFFFF',inactive:'#2A2A2A'};

@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const [webDir, firmware, captureDir] = process.argv.slice(2);
-assert(webDir && firmware, 'Uso: node test-lcd.mjs DIRETORIO_WEB ARQUIVO.fwsc [CAPTURAS]');
+assert(webDir && firmware, 'Usage: node previous-point-and-fill.mjs WEB_DIR PREVIOUS.fwsc CURRENT.fwsc');
 const { jitImports } = await import(pathToFileURL(resolve(webDir, 'jit.js')));
 let x;
 const { instance } = await WebAssembly.instantiate(
@@ -34,7 +34,7 @@ function level(seconds) {
     samples += n;
   }
   assert.equal(x.fm1_halted(), 0);
-  assert(samples > seconds * 44100 * 0.75, 'áudio insuficiente');
+  assert(samples > seconds * 44100 * 0.75, 'Insufficient audio samples');
   return Math.sqrt(sum / samples);
 }
 
