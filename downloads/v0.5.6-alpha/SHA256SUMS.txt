@@ -1,2 +1,0 @@
-fbbbb86558c44f9807d390faddc08d8ca4ccff534d4e5854c2fdca50e323edc8  MDMA-0.5.6-alpha.zip
-2735cb330013b12b47ce119bb25087d3eccbab8337b50d9afff3c2ca22c3b78d  MDMA-0.5.6-alpha.fwsc

@@ -1,11 +1,9 @@
 b3a56b2fc95aa449beca96e08463ea07b6f0fb0aa1310e1fee611266ad7c8cac  ./LICENSE
-0d1910360b764f857ec1d85f73d846dfb44a93460329b91d5d4e98b58ed221fd  ./README.md
+6b7c5dc4a505ffdd824f0c0139c1683f484ca3420cd716d432c4eb4dfddc3b8e  ./README.md
 d143a5b09c080c1d50acbfcf0ec8e522433425dd216cd4534aee383a5c283fbb  ./backup/index.html
-2735cb330013b12b47ce119bb25087d3eccbab8337b50d9afff3c2ca22c3b78d  ./build/MDMA-0.5.6-alpha.fwsc
 0280b53a0056bbd507e408e438ec7ee8e4415a3d16ce5a5d48dcd533448bacf5  ./build/mdma-0.5.6-controls.fwsc
-e107e37c8475ea8e4532355b23c4b371e138e748d83eed76822debc01a73e50a  ./build/mdma.map
-fbbbb86558c44f9807d390faddc08d8ca4ccff534d4e5854c2fdca50e323edc8  ./downloads/v0.5.6-alpha/MDMA-0.5.6-alpha.zip
-a8f2fb2a932dae2c48848ad3507de3238186826f12ee65d3103313f73043dec0  ./downloads/v0.5.6-alpha/SHA256SUMS.txt
+927dd39ecbdcaaa75f66171fab77132a166509dee90b7c2d787d274da5796427  ./docs/compilacao.md
+896a1b0da527796f58ed94401024fbc56286bab5be1a753774396201372bbf87  ./docs/controles.md
 c25f45f0db7bf21e48b997bb09de49c9665c3f0ed5e16712c514e19f8f656b1d  ./downloads/v0.5.6-controls/MDMA-0.5.6-controls.zip
 65dd9820b8b47c9332cca74a3f940037349075c5926b8ab35ea33ab74181fae9  ./firmware/0.5.6-alpha.patch
 f716c9269d9ef113e42bcd6a91e633cea1b87a9407cb5945cb30c60b76362628  ./firmware/MDMA-0.5.5-alpha-live.patch
