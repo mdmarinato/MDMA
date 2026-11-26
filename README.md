@@ -1,12 +1,10 @@
 # MDMA for M-VAVE FM-1
 
-Performance firmware with six layers, four scenes per city and a 16-step drum sequencer. **0.5.6-controls** is the official release and the starting point for development.
+Performance firmware with six layers, four scenes per city and a 16-step drum sequencer. **0.5.7** is the current release. It identifies itself over USB as **MDMA FM-1** and reports `FM-1_63620001` to the updater.
 
-**[Download the firmware ZIP](https://github.com/mdmarinato/MDMA/raw/42011b862b11909c8be8ef7b3f8e219b00ae8818/downloads/v0.5.6-controls/MDMA-0.5.6-controls.zip)**
+**[Download mdma-0.5.7.fwsc](https://github.com/mdmarinato/MDMA/raw/refs/tags/v0.5.7/downloads/v0.5.7/mdma-0.5.7.fwsc)**
 
-Extract the ZIP and use `mdma-0.5.6-controls.fwsc` for the FM-1.
-
-[Controls guide](docs/controls.md) · [City backup tool](docs/backup.html) · [Build and test](docs/build.md) · [Release notes](https://github.com/mdmarinato/MDMA/releases/tag/v0.5.6-controls)
+[Controls guide](docs/controls.md) · [City backup tool](docs/backup.html) · [Build and test](docs/build.md) · [Release notes](https://github.com/mdmarinato/MDMA/releases/tag/v0.5.7)
 
 ## Support and contributions
 

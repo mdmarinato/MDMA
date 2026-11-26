@@ -1,4 +1,4 @@
-# FM-1 controls · MDMA 0.5.6-controls
+# FM-1 controls · MDMA 0.5.7
 
 **Play your first groove.** Press HOME until LIST appears. Turn PRESETS to choose a city. Starting with all layers off, press PLAY/STOP to bring in drums and bass. Press the second black key to select the GROOVE scene. Turn MASTER to set the overall volume.
 
